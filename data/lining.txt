@@ -1,0 +1,33 @@
+================================================================================
+SUPPLEMENTARY DOSSIER: CANAL LINING TYPES, SPECIFICATIONS, AND COST ANALYSIS
+================================================================================
+
+1. CONCRETE LINING (Cast-in-Place or Precast Slabs)
+--------------------------------------------------------------------------------
+- Description: The traditional heavy-duty gold standard for large infrastructure. Consists of a 50mm to 100mm layer of reinforced or unreinforced concrete cast over the canal bed and slopes. Requires expansion joints to handle extreme Central Asian temperature swings.
+- Water Seepage Reduction: Excellent (reduces seepage by 85% to 95%).
+- Lifespan: 30 to 50 years (if properly maintained against cracking and freeze-thaw cycles).
+- Estimated Cost: **$15 to $25 per square meter** (including excavation grading, sub-base preparation, concrete pouring, and joint sealing). Maintenance costs run an additional $2 to $4 per square meter annually due to cracking.
+
+2. GEOMEMBRANE LINERS (HDPE / LLDPE / PVC Plastics)
+--------------------------------------------------------------------------------
+- Description: Industrial plastic sheets (High-Density Polyethylene or Linear Low-Density Polyethylene, typically 1.0mm to 2.0mm thick) rolled out over the canal and often buried under a layer of earth or gravel to protect against UV degradation and livestock damage.
+- Water Seepage Reduction: Near 100% (virtually impermeable).
+- Lifespan: 20 to 40 years (depending on UV protection and burial depth).
+- Estimated Cost: 
+  * Material Only: **$1.00 to $4.00 per square meter** depending on thickness and polymer grade.
+  * Total Installed Cost (with trenching, anchoring, and welding seams): **$5.00 to $12.00 per square meter**, making it significantly cheaper than full concrete lining.
+
+3. GEOMEMBRANE-CONCRETE COMPOSITE LINING
+--------------------------------------------------------------------------------
+- Description: A modern hybrid approach where a thin geomembrane sheet is laid down first to completely stop seepage, followed by a thinner layer of protective shotcrete or precast concrete blocks on top. 
+- Water Seepage Reduction: 100%.
+- Lifespan: 40 to 60+ years (combines the chemical/water-tight seal of plastic with the physical armor of concrete).
+- Estimated Cost: **$18 to $30 per square meter**. While high upfront, it eliminates long-term seepage entirely and protects the plastic from physical wear.
+
+4. COMPACTED EARTH & SOIL-CEMENT LINING (Low-Cost Alternative)
+--------------------------------------------------------------------------------
+- Description: Mixing local canal bed soils with cement (soil-cement) or compacting clay layers heavily to lower permeability without importing expensive materials from afar.
+- Water Seepage Reduction: Moderate (reduces seepage by 50% to 70%).
+- Lifespan: 10 to 20 years (susceptible to erosion from fast-flowing water).
+- Estimated Cost: **$3 to $8 per square meter**, making it the most cost-effective option for large-scale secondary or tertiary agricultural canal networks with tight budgets.

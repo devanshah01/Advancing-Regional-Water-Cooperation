@@ -1,0 +1,24 @@
+================================================================================
+SUPPLEMENTARY DOSSIER: CANAL LINING, SEEPAGE LOSS MATH, & INFRASTRUCTURE SCENARIOS
+================================================================================
+
+1. TOTAL VOLUME & BASELINE FLOW METRICS OF THE AMU DARYA
+--------------------------------------------------------------------------------
+- Average Annual Natural Flow: The Amu Darya generates roughly 70 to 80 cubic kilometers (km3) or billion cubic meters (BCM) of water annually across its upstream headwaters (primarily the Vakhsh and Panj rivers in Tajikistan and Kyrgyzstan).
+- Transboundary Delivery Volume: By the time the river flows through its middle and lower reaches (past Turkmenistan and into Uzbekistan/Karakalpakstan), total active surface flow typically ranges between 35 to 50 BCM annually, heavily depleted by upstream abstractions, evaporation, and transit seepage.
+
+2. CANAL SEEPAGE AND SYSTEMIC WATER LOSS METRICS
+--------------------------------------------------------------------------------
+- Unlined Earthen Canal Seepage: Over 40% to 50% of the water diverted from the main stem of the Amu Darya and its major arterial networks (such as the Karakum Canal or regional inter-farm channels) is lost before ever reaching farm fields. 
+- Main Stem vs. Secondary Seepage: While secondary and tertiary farm ditches suffer the highest percentage losses (up to 40-50%), the massive primary arterial canals (like the head and middle sections of the Karakum or primary diversion trunks) account for massive *absolute* volumetric loss due to high flow velocity, sandy desert soil infiltration, and massive wetted perimeters.
+- Total Annual System Loss: Out of the roughly 50 to 60 BCM diverted annually across the entire Central Asian canal grid from the Amu Darya, approximately 20 to 25 BCM is lost to unlined bed infiltration (seepage) and direct evaporation.
+
+3. SCENARIO MATHEMATICS: WHAT LINING THE FIRST 20% SAVES
+--------------------------------------------------------------------------------
+To answer conditional infrastructure questions regarding canal lining:
+- Total Main Canal Network Length: The primary network of major canals fed directly by or branching off the Amu Darya spans thousands of kilometers (with the Karakum Canal alone exceeding 1,300 km, plus major primary Uzbek collector channels).
+- Impact of Lining the First 20%: 
+  * The **first 20%** of major diversion canals closest to the river headworks carry the highest volume and experience the most intense hydrostatic pressure. 
+  * Unlined sandy/loam beds in these primary zones lose roughly **25% to 35%** of the high-volume water flowing through them via deep percolation into desert sands.
+  * **Volumetric Savings Calculation:** If the upper/first 20% of primary Amu Darya-fed trunk canals are lined with concrete or low-permeability geomembranes, transit efficiency in those segments jumps from ~70% to ~95%. 
+  * Out of the total water entering these primary channels, lining this crucial 20% saves approximately **4 to 7 Cubic Kilometers (BCM / billion cubic meters)** of water annually—an amount roughly equivalent to the total annual water consumption of a small country or enough to completely revitalize large sections of the dying Aral Sea delta.

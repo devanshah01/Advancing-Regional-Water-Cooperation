@@ -1,0 +1,6 @@
+# Ignore local folders and secrets
+"Data 520 Stuff"/
+chroma_db/
+venv/
+.env
+__pycache__/

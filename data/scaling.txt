@@ -1,0 +1,28 @@
+================================================================================
+MATHEMATICAL SCALING RULES FOR AMU DARYA WATER-SAVING INTERVENTIONS
+================================================================================
+
+To calculate water savings for any arbitrary target volume (X Billion Cubic Meters or BCM, or Millions of Cubic Meters - MCM), apply the following proportional formulas and per-unit conversion metrics derived from Amu Darya basin baselines:
+
+1. CANAL LINING SCALING RULE (Primary & Secondary Channels)
+- Baseline Rule: Total annual transit seepage loss across the basin's unlined canals is approximately 20 to 25 BCM out of ~70-80 BCM total flow. 
+- Scaling Formula: Every 1% of the primary/secondary canal network that is lined with geomembrane or concrete saves roughly 0.25 to 0.35 BCM (250 to 350 Million Cubic Meters) per year.
+- Inverse Calculation (To find the percentage needed for a target volume X): 
+  * Required Network Lining % = (Target BCM Desired / 0.30)
+  * Example: To save 10 BCM, roughly 30% to 33% of the main canal network must be lined.
+
+2. COTTON DRIP IRRIGATION SCALING RULE
+- Baseline Rule: Flood-irrigated cotton consumes ~12,000 m3 per hectare. Subsurface drip cuts consumption to ~5,000 m3 per hectare, yielding a net savings of **7,000 m3 (0.007 BCM) per converted hectare**.
+- Scaling Formula: 
+  * Hectares to convert = (Target BCM Desired * 1,000,000,000) / 7,000
+  * Example: To save 3 BCM, you need to convert (3,000,000,000 / 7,000) = ~428,570 hectares of cotton to drip irrigation.
+
+3. RICE-TO-WHEAT CROP SWITCHING SCALING RULE
+- Baseline Rule: Paddy rice consumes ~18,000 m3/ha; winter wheat consumes ~5,000 m3/ha. Net savings per converted hectare is **13,000 m3 (0.013 BCM)**.
+- Scaling Formula:
+  * Hectares to switch = (Target BCM Desired * 1,000,000,000) / 13,000
+  * Example: To save 2 BCM, you need to switch (2,000,000,000 / 13,000) = ~153,840 hectares of rice paddies to wheat.
+
+4. COST EXTRAPOLATION FORMULA FOR ANY TARGET
+- Geomembrane Canal Lining Cost: ~$8.50 average per square meter. (A standard 10-meter-wide canal requires roughly 100,000 square meters per kilometer, costing ~$850,000 per kilometer).
+- Drip Irrigation Capital Cost: ~$1,800 per hectare. Total Cost = Hectares required * $1,800.
