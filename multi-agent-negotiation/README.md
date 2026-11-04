@@ -27,7 +27,7 @@ We built 10 test personas from the 4 country worksheets. 4 are the worksheets un
 **Next steps**
 1. Use a bigger model (at least 14B, for example qwen2.5:14b) for the agents, and run the verifier at temperature 0 or on a stronger model.
 2. Run each persona 5 or more times, so we can compare personas properly.
-3. Rebuild the database index to include the new documents Devan added, and add more Afghanistan sources and primary treaty texts.
+3. Rebuild the database index to include the new documents Devan added, and add more sources and primary treaty texts.
 4. Review the 4 country worksheets, and find sources for the lines marked NO SOURCE YET.
 5. Replace the placeholder numbers in basin.yaml marked ILLUSTRATIVE with sourced values.
 6. Look into why agents accept deals worth less than walking away, starting with Afghanistan.
