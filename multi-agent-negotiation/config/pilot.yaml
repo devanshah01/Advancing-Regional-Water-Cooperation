@@ -9,7 +9,7 @@ models:
   # - {name: claude, type: anthropic, model: claude-sonnet-5-5}
 
 factors:
-  persona: [none, rich]
+  persona: [none, rich, worksheet]
   payoff: [hidden, full]
   grounding: [rag]
   legal: ["on"]

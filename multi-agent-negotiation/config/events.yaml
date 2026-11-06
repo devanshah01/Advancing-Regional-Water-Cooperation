@@ -22,11 +22,11 @@ qosh_tepa_shock:
     goal_updates:
       Uzbekistan:
         add: {objectives: "Obtain a binding cap on Qosh Tepa withdrawals in the growing season"}
-        priorities: {growing_water: critical}
+        priorities: {summer_water: critical}
       Turkmenistan:
         add: {objectives: "Obtain a binding cap on Qosh Tepa withdrawals in the growing season"}
       Afghanistan:
-        priorities: {recognition: critical}
+        priorities: {recognition as a basin party: critical}
 
 energy_crisis:
   - round: 2

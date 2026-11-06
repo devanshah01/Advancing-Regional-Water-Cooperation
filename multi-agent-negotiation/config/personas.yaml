@@ -1,6 +1,8 @@
 # Persona conditions, following Manoranjan and Gaikwad (FAccT 2026):
 #   none  : structural role label only, "act strategically" (their no persona arm)
 #   rich  : identity and motivation narrative (their persona arm)
+#   worksheet : built from Part A of config/worksheets/<Country>.yaml (sourced, neutral);
+#               not listed here, added by load_configs()
 # Extra wording variants (rich_v2, rich_v3) test prompt sensitivity, mirroring
 # the paper's seven formulations per scenario. Add more variants freely; the
 # experiment runner picks them up by name.

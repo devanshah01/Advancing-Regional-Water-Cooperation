@@ -11,7 +11,7 @@ models:
   - {name: mock, type: mock}
 
 factors:
-  persona: [none, rich]            # add rich_v2, rich_v3 for prompt sensitivity runs
+  persona: [none, rich, worksheet]            # add rich_v2, rich_v3 for prompt sensitivity runs
   payoff: [hidden, own, full]      # hidden = narrative only, own = own payoffs, full = everyone's payoffs
   grounding: [rag, none]           # rag = document passages and lookups, none = no documents
   legal: ["on"]                    # add "off" (quoted: YAML reads bare on/off as true/false) to test the legal advisor's influence

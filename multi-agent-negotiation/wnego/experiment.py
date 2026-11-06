@@ -16,6 +16,7 @@ import pandas as pd
 import yaml
 from scipy.stats import chi2_contingency, fisher_exact
 
+from . import worksheets
 from .agents import Condition
 from .benchmarks import nash_bargaining_solution
 from .environment import Basin
@@ -36,9 +37,17 @@ def _git_hash() -> str:
 
 
 def load_configs(root: Path = ROOT) -> dict:
+    """Worksheets in config/worksheets/ (one per country) supply the `worksheet`
+    persona (Part A) and the goal files (Part B). goals.yaml is used only for a
+    country without a worksheet."""
     c = root / "config"
-    return {"personas": yaml.safe_load(open(c / "personas.yaml")),
-            "goals": yaml.safe_load(open(c / "goals.yaml")),
+    personas = yaml.safe_load(open(c / "personas.yaml"))
+    goals = yaml.safe_load(open(c / "goals.yaml"))
+    sheets = {ws["country"]: ws for ws in worksheets.load_dir(c / "worksheets").values()}
+    if sheets:
+        personas["worksheet"] = {k: worksheets.persona_text(ws) for k, ws in sheets.items()}
+        goals.update({k: worksheets.goal_file(ws) for k, ws in sheets.items()})
+    return {"personas": personas, "goals": goals, "worksheets": sheets,
             "events": yaml.safe_load(open(c / "events.yaml")) or {},
             "rag": yaml.safe_load(open(c / "rag.yaml"))}
 

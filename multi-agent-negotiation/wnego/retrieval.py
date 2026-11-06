@@ -272,7 +272,10 @@ def build_index(docs_folder: str | Path, db_path: str | Path, collection: str = 
     """
     import chromadb
     embed = embed_fn or ollama_embedder()
-    col = chromadb.PersistentClient(path=str(Path(db_path).expanduser())).get_or_create_collection(collection)
+    # cosine space: nomic-embed-text vectors are not unit length, and Chroma's default (l2)
+    # both ranks them by norm and makes the 1 - distance score meaningless
+    col = chromadb.PersistentClient(path=str(Path(db_path).expanduser())).get_or_create_collection(
+        collection, metadata={"hnsw:space": "cosine"})
     by_file: dict[Path, list] = {}
     for cid, text, meta, path in iter_chunks(docs_folder, max_chars):
         by_file.setdefault(path, []).append((cid, text, meta))

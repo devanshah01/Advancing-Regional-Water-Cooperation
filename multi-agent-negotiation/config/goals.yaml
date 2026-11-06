@@ -1,5 +1,8 @@
 # Goal files: each country's instructions from its government, kept as data.
 #
+# SUPERSEDED: config/worksheets/<Country>.yaml (Part B) now supplies the goals for every
+# country that has a worksheet. This file is the fallback for a country without one.
+#
 # Persona (config/personas.yaml) = who the agent is.     An experimental factor.
 # Goals   (this file)             = what it is told to get. Changes through events.
 #

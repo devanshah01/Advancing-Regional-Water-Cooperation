@@ -7,6 +7,12 @@
   python -m wnego index --docs ../data/raw --db ../chroma_db        # improved index (amu_darya_v2)
   python -m wnego experiment config/experiment.yaml
   python -m wnego benchmarks --scenario normal
+  python -m wnego worksheets                                        # Part C checks on config/worksheets
+  python -m wnego synth                                             # write the 10 synthetic personas
+  python -m wnego ground --backend ollama --model llama3.2         # RAG truth grounding evaluation
+  python -m wnego rescore runs/grounding/llama3.2_chroma           # re-verify with citation ids normalised
+  python -m wnego report runs/grounding/llama3.2_chroma_normalized --strict runs/grounding/llama3.2_chroma
+  python -m wnego serve                                             # API for the web front end
 """
 import argparse
 import json
@@ -37,7 +43,7 @@ def main():
     r.add_argument("--model", default="")
     r.add_argument("--base-url", default=None, help="openai_compat server URL")
     r.add_argument("--host", default=None, help="Ollama host, e.g. http://localhost:11434")
-    r.add_argument("--persona", default="rich")
+    r.add_argument("--persona", default="worksheet", help="none, rich, rich_v2, rich_v3, worksheet")
     r.add_argument("--payoff", default="hidden", choices=["hidden", "own", "full"])
     r.add_argument("--grounding", default="rag", choices=["rag", "none"])
     r.add_argument("--legal", default="on", choices=["on", "off"])
@@ -71,6 +77,38 @@ def main():
     bm = sub.add_parser("benchmarks", help="print no deal, Protocol 566, Nash bargaining and utilitarian reference points")
     bm.add_argument("--scenario", default="normal")
 
+    sub.add_parser("worksheets", help="run the Part C checks on config/worksheets")
+    sub.add_parser("synth", help="write the synthetic personas to config/worksheets/synthetic")
+
+    g = sub.add_parser("ground", help="RAG truth grounding evaluation of persona worksheets")
+    g.add_argument("--backend", default="ollama", choices=["mock", "ollama", "anthropic", "openai_compat"])
+    g.add_argument("--model", default="llama3.2")
+    g.add_argument("--base-url", default=None)
+    g.add_argument("--host", default=None)
+    g.add_argument("--personas", default=str(ROOT / "config/worksheets/synthetic"))
+    g.add_argument("--docs", default=str(ROOT.parent / "data"), help="documents folder (used only with --rag bm25)")
+    g.add_argument("--scenario", default="normal")
+    g.add_argument("--seed", type=int, default=0)
+    g.add_argument("--temperature", type=float, default=0.7)
+    g.add_argument("--rag", default=None, choices=["bm25", "chroma"])
+    g.add_argument("--collection", default=None)
+    g.add_argument("--out", default=None)
+
+    rs = sub.add_parser("rescore", help="re-verify a grounding run's claims with citation ids normalised")
+    rs.add_argument("run_dir")
+    rs.add_argument("--backend", default="ollama")
+    rs.add_argument("--model", default="llama3.2")
+    rs.add_argument("--out", default=None, help="default: <run_dir>_normalized")
+
+    rp = sub.add_parser("report", help="HTML report of a grounding evaluation run")
+    rp.add_argument("run_dir")
+    rp.add_argument("--findings", default=str(ROOT / "reports/grounding_findings.yaml"))
+    rp.add_argument("--out", default=str(ROOT / "reports/grounding_report.html"))
+    rp.add_argument("--strict", default=None, help="the run as generated, when run_dir is a rescored run")
+
+    sv = sub.add_parser("serve", help="HTTP API for the web front end")
+    sv.add_argument("--port", type=int, default=8000)
+
     a = ap.parse_args()
     if a.cmd == "run":
         spec = {"name": a.model or a.backend, "type": a.backend, "model": a.model}
@@ -96,6 +134,46 @@ def main():
         from .retrieval import ollama_embedder
         stats = build_index(a.docs, a.db, a.collection, ollama_embedder(a.embed_model), a.max_chars)
         print(stats)
+    elif a.cmd == "worksheets":
+        from . import worksheets
+        for wid, issues in worksheets.report(ROOT / "config/worksheets").items():
+            print(f"{wid}: {'PASS' if not issues else 'FAIL'}")
+            for i in issues:
+                print(f"   [{i['check']}] {i['field']}: {i['message']}")
+    elif a.cmd == "synth":
+        from .synthetic import build
+        for p in build(ROOT / "config/worksheets", ROOT / "config/worksheets/synthetic"):
+            print("wrote", p.relative_to(ROOT))
+    elif a.cmd == "ground":
+        import time
+        from . import grounding_eval
+        from .llm import make_llm
+        from .retrieval import ollama_embedder
+        cfg = _configs_with_rag(a)
+        spec = {"name": a.model or a.backend, "type": a.backend, "model": a.model}
+        if a.base_url:
+            spec["base_url"] = a.base_url
+        if a.host:
+            spec["host"] = a.host
+        ret = make_retriever(cfg["rag"], ROOT)
+        embed = getattr(ret, "embed", None) or ollama_embedder(cfg["rag"]["chroma"].get("embed_model", "nomic-embed-text"))
+        out = a.out or ROOT / "runs" / "grounding" / time.strftime("%Y%m%d_%H%M")
+        _, head = grounding_eval.run(a.personas, make_llm(spec, a.temperature), ret, embed, a.docs, out, a.scenario, seed=a.seed)
+        print(json.dumps(head, indent=1, default=float))
+        print("results in", out)
+    elif a.cmd == "rescore":
+        from .grounding_eval import rescore
+        from .llm import make_llm
+        cfg = load_configs()
+        ret = make_retriever(cfg["rag"], ROOT)
+        rescore(a.run_dir, a.out or a.run_dir.rstrip("/\\") + "_normalized",
+                make_llm({"type": a.backend, "model": a.model}), ret, ret.embed, ROOT.parent / "data")
+    elif a.cmd == "report":
+        from .report import render
+        print("wrote", render(a.run_dir, a.findings, a.out, a.strict))
+    elif a.cmd == "serve":
+        import uvicorn
+        uvicorn.run("wnego.api:app", host="127.0.0.1", port=a.port)
     elif a.cmd == "experiment":
         run_experiment(a.config, a.out)
     elif a.cmd == "benchmarks":

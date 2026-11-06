@@ -1,0 +1,22 @@
+# Written findings for reports/grounding_report.html. The numbers on the page are
+# recomputed from the run records each time the report is generated; keep these
+# sentences in line with them after a rerun.
+run: llama3.2 on Chroma amu_darya_v2, 10 synthetic personas, one run each, temperature 0.7
+
+findings:
+  - "Citation format is the largest failure. As generated, only 7 of 29 claims (24%) cited a passage id the delegate had been shown. Most of the rest were real ids wrapped in square brackets or with a suffix added, such as Limits#p1#c0#c0. With ids normalised, 24 of 29 (83%) are valid; 5 claims (17%) cite ids that exist nowhere, such as Growing Season Allocation#c1."
+  - "A valid citation is not the same as a supported claim. After normalisation, 10 of 29 claims (34%) were judged supported or partly supported by the passage they cite, up from 3 of 29 (10%) as generated."
+  - "The verifier is not consistent enough to rely on. Seven claims had the same valid citation in both passes and were judged twice by the same model; the verdict matched 3 times. Use a larger judge model, or temperature 0, before reporting verdicts as findings."
+  - "Claims are on topic for the passage they cite: similarity to the cited passage averaged 0.75, against 0.61 for random library passages."
+  - "The delegates invented no figures. All 13 numbers in their public statements appear in the prompts they received, and the false-facts persona's delegate repeated none of the 7 planted false figures."
+  - "The worksheet figure check catches planted facts that embedding similarity misses. In the false-facts persona, 72% of figures appear in the cited files, against 100% for all four reference worksheets; its support similarity barely moved (0.74 against 0.75 for the Uzbekistan reference). The cooperative persona scores 83% because its new 14 billion cubic metre red line has no source."
+  - "The automatic Part C checks flagged the loaded-wording persona (8 issues) and the role-label persona (4 issues). They pass the unsourced and false-facts personas by design, because NO SOURCE YET is an allowed answer and a wrong number can still read neutrally; the source checks above cover those."
+  - "Two of the 7 accept votes were for a text worth less than no deal, both from Afghanistan (reference and unsourced personas): 367 against a no-deal value of 805, with its own payoffs shown. Tajikistan rejected the same text in both of its personas, consistent with its payoffs (538 against 1,248)."
+  - "Afghanistan gets the least relevant briefing: 38% of its passages mention Afghanistan or its rivers and works, against 50% to 75% for the other countries. The library has little Afghanistan-specific material."
+
+caveats:
+  - "One run per persona at temperature 0.7, 29 claims in all. Treat differences between personas as directions to test, not results."
+  - "llama3.2 (3B) is below the 14B minimum the README recommends for negotiation agents, and it also acts as its own verifier."
+  - "Similarities use nomic-embed-text without task prefixes, as the RAG app does. Random passages already score about 0.6, so read the gap, not the level."
+  - "The figure check compares bare numbers. A number counted as found can appear in the source in another context; the false-facts persona's 45 and 70 percent were found this way."
+  - "The library has 15 documents (117 chunks) and no primary treaty text; the legal advisor reads two news reports of agreements."

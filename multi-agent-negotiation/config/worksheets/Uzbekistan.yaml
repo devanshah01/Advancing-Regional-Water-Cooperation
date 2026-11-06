@@ -2,7 +2,7 @@
 # Part B becomes its goal file (instructions). Sources name a file in ../data
 # with a page (p.N) or section (§N). Draft for team review.
 country: Uzbekistan
-filled_by: Claude (draft from ../data, for team review)
+filled_by: Draft from ../data, for team review
 
 part_a:
   position:

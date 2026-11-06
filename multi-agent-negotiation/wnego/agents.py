@@ -324,8 +324,26 @@ class Verifier:
     """Checks every cited claim against the cited passage before it enters the
     shared record, so one agent's hallucination does not cascade to the others."""
 
-    def __init__(self, llm: LLM, retriever: BaseRetriever | None):
-        self.llm, self.retriever = llm, retriever
+    def __init__(self, llm: LLM, retriever: BaseRetriever | None, normalize_ids: bool = True):
+        self.llm, self.retriever, self.normalize_ids = llm, retriever, normalize_ids
+
+    def resolve(self, cite: str) -> tuple[str, object]:
+        """Map a cited id to a passage. Small models copy the brackets passages are
+        shown in ("[info#c2]") or append a suffix ("Limits#p1#c0#c0"); with
+        normalize_ids those resolve to the passage they start with. Ids that match
+        no passage stay unresolved."""
+        p = self.retriever.get(cite)
+        if p is not None or not self.normalize_ids:
+            return cite, p
+        cid = cite.strip().strip("[]").strip()
+        while cid:
+            p = self.retriever.get(cid)
+            if p is not None:
+                return cid, p
+            if cid.count("#") < 2:
+                break
+            cid = cid.rsplit("#", 1)[0]
+        return cite, None
 
     def check(self, claims: list[dict]) -> list[dict]:
         out, judge, passages = [], [], {}
@@ -333,7 +351,17 @@ class Verifier:
             if not isinstance(c, dict):
                 continue
             cite = c.get("cite")
-            p = self.retriever.get(cite) if (cite and self.retriever) else None
+            if isinstance(cite, list):          # small models sometimes cite several ids; judge the first
+                cite = next((x for x in cite if isinstance(x, str) and x.strip()), None)
+            elif cite is not None and not isinstance(cite, str):
+                cite = str(cite)
+            p = None
+            if cite and self.retriever:
+                resolved, p = self.resolve(cite)
+                if resolved != cite:
+                    c = {**c, "cite_raw": cite}
+                cite = resolved
+            c = {**c, "cite": cite}
             if not cite or self.retriever is None:
                 out.append({**c, "verdict": "uncited"})
             elif p is None:

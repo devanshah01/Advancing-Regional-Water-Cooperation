@@ -2,7 +2,7 @@
 # Part B becomes its goal file (instructions). Sources name a file in ../data
 # with a page (p.N) or section (§N). Draft for team review.
 country: Tajikistan
-filled_by: Claude (draft from ../data, for team review)
+filled_by: Draft from ../data, for team review
 
 part_a:
   position:
@@ -18,7 +18,7 @@ part_a:
   history:
     answer: >-
       In the Soviet era upstream states stored water for downstream irrigation and received fuel
-      and electricity in return; that exchange broke down after 1991. Rogun led to a dispute with
+      and electricity in return; that exchange broke down after the Soviet Union collapsed. Rogun led to a dispute with
       Uzbekistan in 2012, and relations improved after 2016.
     source: Limits.pdf p.3
   values:

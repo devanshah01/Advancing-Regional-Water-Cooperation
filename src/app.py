@@ -9,7 +9,7 @@ from pypdf import PdfReader
 MODEL_NAME = "llama3.2"
 EMBED_MODEL = "nomic-embed-text"
 DB_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../chroma_db"))
-DOCS_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data/raw"))
+DOCS_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), "../data"))
 
 st.set_page_config(page_title="Local RAG Chatbot", page_icon="🤖")
 st.title("Local Document Chatbot")
