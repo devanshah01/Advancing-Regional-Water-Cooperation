@@ -10,3 +10,5 @@ query_log.jsonl
 *_DRYRUN*
 quick_test*
 .DS_Store
+
+db_*/
