@@ -61,9 +61,9 @@ def fake_embed(text, dim=64):
 
 def fake_generate(prompt, temperature=None, seed=None):
     if "VERIFIED CALCULATIONS" in prompt or "Stakeholder positions" in prompt:
-        names = ["Uzbekistan", "Turkmenistan", "Afghanistan", "Tajikistan", "Kyrgyzstan"]
+        names = ["Kyrgyzstan", "Tajikistan", "Kazakhstan", "Uzbekistan", "Turkmenistan"]
         body = "\n".join(f"- {n}: Conditional - stub reason - stub condition" for n in names)
-        return f"Recommended pathway: stub.\n\nStakeholder positions:\n{body}\n\nMain risks and open questions: stub."
+        return f"Recommended pathway: Prioritize cotton drip irrigation (stub).\n\nStakeholder positions:\n{body}\n\nMain risks and open questions: stub."
     if "Context:" not in prompt:
         return "Stub baseline answer."
     ctx = prompt.split("Context:")[1].split("Question:")[0].strip()
@@ -122,10 +122,75 @@ def chunk_text(text, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP):
     return [text[s:s + chunk_size] for s in range(0, len(text), chunk_size - overlap)]
 
 
-def _fingerprint(folder, chunk_size, overlap, embed_model, clean, header=False):
+_TABLE_START = re.compile(r"^\s*Table\s+\d+\b", re.I)
+_TABLE_STOP = re.compile(r"^\s*(Figure\s+\d+|Table\s+\d+)\b", re.I)
+_DATE_ROW = re.compile(r"\d{2}\.\d{2}\.\d{4}")
+
+
+def _is_prose(line):
+    """A long, mostly alphabetic line: ends a table block."""
+    words = line.split()
+    letters = sum(ch.isalpha() for ch in line)
+    return len(words) >= 12 and letters > 0.6 * max(len(line.strip()), 1)
+
+
+def chunk_text_table_aware(text, chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP, max_table=2000):
+    """H1 chunking: a table ("Table N" caption up to the next caption, figure or prose paragraph)
+    is kept in ONE chunk so a row and its column headers are never separated. A table longer than
+    max_table characters is split by rows, and the caption and date header row are repeated on every
+    piece. Text outside tables is chunked exactly like chunk_text()."""
+    lines = text.splitlines()
+    blocks, cur, kind = [], [], "text"
+    seen_rows = False   # a prose line only ends a table after at least one numeric row was seen
+    def flush():
+        nonlocal cur, kind
+        if cur:
+            blocks.append((kind, "\n".join(cur)))
+        cur = []
+    for ln in lines:
+        if kind == "text" and _TABLE_START.match(ln):
+            flush(); kind = "table"; cur = [ln]; seen_rows = False
+        elif kind == "table" and (_TABLE_STOP.match(ln) or (seen_rows and _is_prose(ln))):
+            flush(); kind = "text"
+            if _TABLE_START.match(ln):
+                kind = "table"; seen_rows = False
+            cur = [ln]
+        else:
+            if kind == "table" and len(re.findall(r"\d[\d.,]*", ln)) >= 3:
+                seen_rows = True
+            cur.append(ln)
+    flush()
+    chunks = []
+    for kind, body in blocks:
+        if kind == "text":
+            if body.strip():
+                chunks.extend(chunk_text(body, chunk_size, overlap))
+            continue
+        if len(body) <= max_table:
+            chunks.append(body)
+            continue
+        blines = body.splitlines()
+        head = [blines[0]]
+        for ln in blines[1:6]:
+            head.append(ln)
+            if _DATE_ROW.search(ln):
+                break
+        header = "\n".join(head)
+        piece = header
+        for ln in blines[len(head):]:
+            if len(piece) + len(ln) + 1 > max_table and piece != header:
+                chunks.append(piece)
+                piece = header
+            piece += "\n" + ln
+        if piece != header:
+            chunks.append(piece)
+    return chunks
+
+
+def _fingerprint(folder, chunk_size, overlap, embed_model, clean, header=False, chunking="fixed"):
     """Changes whenever a document, the chunking, the cleaning or the embedding model changes."""
     h = hashlib.sha256()
-    h.update(f"{chunk_size}|{overlap}|{embed_model}|{clean}|{DRY_RUN}|{header}".encode())
+    h.update(f"{chunk_size}|{overlap}|{embed_model}|{clean}|{DRY_RUN}|{header}|{chunking}".encode())
     for path in _doc_paths(folder):
         name = os.path.basename(path)
         if name in EXCLUDE_FILES:
@@ -137,18 +202,19 @@ def _fingerprint(folder, chunk_size, overlap, embed_model, clean, header=False):
 # ----------------------------------------------------------------------- index
 def build_index(folder=DOCS_FOLDER, db_path=DB_PATH, embed_fn=None,
                 chunk_size=CHUNK_SIZE, overlap=CHUNK_OVERLAP, embed_model=EMBED_MODEL,
-                rebuild=False, clean=True, header=False):
+                rebuild=False, clean=True, header=False, chunking="fixed"):
     """Return (collection, status, info).
 
     The index is rebuilt automatically when a document, chunk setting or cleaning
     option changes. status is "loaded_existing", "created_new" or "no_documents".
+    chunking="table" keeps each "Table N" block in one chunk (hypothesis H1); "fixed" is the 500/50 baseline.
     header=True prefixes every chunk with "[Source: <file name>]" before embedding, which helps tell
     near-identical documents apart (e.g. the four monitoring reports that share one template).
     """
     embed_fn = embed_fn or default_embed_fn()
     os.makedirs(db_path, exist_ok=True)
     fp_file = os.path.join(db_path, "fingerprint.txt")
-    fp = _fingerprint(folder, chunk_size, overlap, embed_model, clean, header)
+    fp = _fingerprint(folder, chunk_size, overlap, embed_model, clean, header, chunking)
     client = chromadb.PersistentClient(path=db_path)
 
     if not rebuild and os.path.exists(fp_file):
@@ -174,7 +240,9 @@ def build_index(folder=DOCS_FOLDER, db_path=DB_PATH, embed_fn=None,
     ids, embs, docs, metas = [], [], [], []
     n = 0
     for doc in documents:
-        for chunk in chunk_text(doc["text"], chunk_size, overlap):
+        pieces = (chunk_text_table_aware(doc["text"], chunk_size, overlap) if chunking == "table"
+                  else chunk_text(doc["text"], chunk_size, overlap))
+        for chunk in pieces:
             if header:
                 chunk = f"[Source: {doc['source']}]\n{chunk}"
             ids.append(str(n))

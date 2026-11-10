@@ -102,6 +102,7 @@ def main():
     ap.add_argument("--chunk-size", type=int, default=rc.CHUNK_SIZE, help="characters per chunk (paper default 500)")
     ap.add_argument("--overlap", type=int, default=rc.CHUNK_OVERLAP, help="overlap in characters (paper default 50)")
     ap.add_argument("--no-clean", action="store_true", help="do not strip web-page boilerplate from PDFs")
+    ap.add_argument("--chunking", choices=["fixed", "table"], default="fixed", help="fixed = 500/50 baseline; table = keep tables whole (H1)")
     ap.add_argument("--chunk-header", action="store_true", help="prefix each chunk with its source file name before embedding")
     ap.add_argument("--dry-run", action="store_true", help="fake models; plumbing test only")
     args = ap.parse_args()
@@ -120,12 +121,12 @@ def main():
 
     col, status, info = rc.build_index(args.docs, args.db, embed_fn=embed_fn, chunk_size=args.chunk_size,
                                        overlap=args.overlap, rebuild=args.rebuild or args.dry_run,
-                                       clean=not args.no_clean, header=args.chunk_header)
+                                       clean=not args.no_clean, header=args.chunk_header, chunking=args.chunking)
     if col is None:
         raise SystemExit(f"No .txt/.pdf documents found in {args.docs}")
     print(f"Index ({status}): {info['documents']} documents, {info['chunks']} chunks "
           f"(chunk {args.chunk_size}/{args.overlap}, cleaning {'off' if args.no_clean else 'on'}, "
-          f"chunk header {'on' if args.chunk_header else 'off'})")
+          f"chunk header {'on' if args.chunk_header else 'off'}, chunking {args.chunking})")
     for name, n in info["sources"]:
         print(f"  {name}: {n} chunks")
 
