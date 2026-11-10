@@ -54,5 +54,5 @@ id: P04_TKM_reference
 synthetic:
   base: Turkmenistan
   perturbation: reference
-  tests: sourced downstream worksheet, control
+  tests: sourced worksheet unchanged, control
   planted: []

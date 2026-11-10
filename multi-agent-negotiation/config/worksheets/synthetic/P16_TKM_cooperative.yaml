@@ -27,7 +27,7 @@ part_b:
     items:
     - A stable growing season supply under a published, rule based allocation
     - Shared financing of upstream storage costs in exchange for guaranteed summer releases
-    - Joint co-financing of Karakum Canal lining with savings counted toward delta flow
+    - Joint co-financing of canal lining and efficiency upgrades with savings counted toward delta flow
     source: Limits.pdf p.3, p.4; soln.txt §8; government.txt §2
   priorities:
     levels:
@@ -47,7 +47,7 @@ part_b:
   fallback:
     answer: Rely on existing intakes, the ICWC limit and bilateral arrangements with Uzbekistan.
     source: government.txt §2; foundational agreements.pdf p.4
-id: P07_TKM_cooperative
+id: P16_TKM_cooperative
 synthetic:
   base: Turkmenistan
   perturbation: cooperative

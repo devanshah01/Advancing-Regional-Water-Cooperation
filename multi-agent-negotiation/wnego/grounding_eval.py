@@ -45,7 +45,7 @@ from .goals import GoalBook
 
 _NUM = re.compile(r"(?<![\w.])\d[\d,]*(?:\.\d+)?")
 KEY_TERMS = {
-    "Afghanistan": ("afghan", "qosh tepa", "panj", "kunduz", "kokcha"),
+    "Kyrgyzstan": ("kyrgyz", "pamir", "tien shan", "glacial", "micro-hydro", "headwater"),
     "Tajikistan": ("tajik", "rogun", "nurek", "vakhsh", "bahri tojik", "dushanbe"),
     "Uzbekistan": ("uzbek", "khorezm", "karakalpak", "nukus", "tashkent"),
     "Turkmenistan": ("turkmen", "karakum", "kerki", "avaza"),
@@ -198,12 +198,18 @@ def _claims_metrics(checked: list[dict], shown: dict, lib: Library, rng) -> dict
     }
 
 
-def eval_persona(ws: dict, llm, retriever, embed, lib: Library, basin: Basin, seed: int = 0) -> dict:
+def eval_persona(ws: dict, llm, retriever, embed, lib: Library, basin: Basin, seed: int = 0,
+                 zopa: dict | None = None, verifier_llm=None) -> dict:
+    """verifier_llm: separate (typically colder) LLM for the Verifier role.
+    Defaults to the same llm as the delegate if not given. See protocol.py's
+    Negotiation.__init__ for why: the pilot found the verifier judged the
+    same 7 claims twice and agreed with itself only 3 times at the shared
+    temperature=0.7."""
     country = ws["country"]
     rng = np.random.default_rng(seed)
     cond = Condition(persona="eval", payoff="own", grounding="rag", scenario=basin.scenario, max_rounds=6)
     goals = GoalBook({country: W.goal_file(ws)})
-    agent_llm, judge_llm = Recorder(llm, "delegate"), Recorder(llm, "verifier")
+    agent_llm, judge_llm = Recorder(llm, "delegate"), Recorder(verifier_llm or llm, "verifier")
     tools = Toolbox(basin, retriever, cond)
     d = Delegate(country, agent_llm, basin, cond, {"eval": {country: W.persona_text(ws)}}, retriever, goals, tools, rng)
     verifier = Verifier(judge_llm, retriever)
@@ -232,6 +238,10 @@ def eval_persona(ws: dict, llm, retriever, embed, lib: Library, basin: Basin, se
     planted = (ws.get("synthetic") or {}).get("planted") or []
     planted_hits = [p for p in planted if p.lower() in out_text.lower()]
     u, nd = basin.utilities(text)[country], basin.no_deal_utilities()[country]
+    batna_score = float("nan")
+    if zopa:
+        width = zopa["width"].get(country, 0.0)
+        batna_score = (u - nd) / width if width > 1e-6 else float("nan")
     calls = agent_llm.log + judge_llm.log
     return {
         "id": ws["id"], "country": country, "perturbation": (ws.get("synthetic") or {}).get("perturbation", "base"),
@@ -247,7 +257,7 @@ def eval_persona(ws: dict, llm, retriever, embed, lib: Library, basin: Basin, se
         },
         "claims_all": all_claims, "claims_opening": claims, "claims_response": claims_r,
         "statements": {"opening": opening.get("statement", ""), "response": resp.get("statement", "")},
-        "vote": resp.get("vote"), "utility": u, "no_deal": nd,
+        "vote": resp.get("vote"), "utility": u, "no_deal": nd, "batna": nd, "batna_score": batna_score,
         "vote_payoff_consistent": int((resp.get("vote") == "accept") == (u >= nd)),
         "stated_numbers": sorted(stated_nums), "ungrounded_numbers": ungrounded,
         "ungrounded_number_rate": len(ungrounded) / len(stated_nums) if stated_nums else 0.0,
@@ -301,6 +311,7 @@ def flatten(r: dict) -> dict:
     row = {"id": r["id"], "country": r["country"], "perturbation": r["perturbation"],
            "part_c_issues": len(r["part_c_issues"]), "vote": r["vote"],
            "vote_payoff_consistent": r["vote_payoff_consistent"],
+           "batna": r["batna"], "batna_score": r["batna_score"],
            "ungrounded_number_rate": r["ungrounded_number_rate"], "n_stated_numbers": len(r["stated_numbers"]),
            "planted_propagation": r["planted_propagation"]}
     for sec, k in FLAT:
@@ -308,20 +319,24 @@ def flatten(r: dict) -> dict:
     return row
 
 
-def run(persona_dir, llm, retriever, embed, docs_dir, out_dir, scenario="normal", basin_path=None, seed=0, log=print):
+def run(persona_dir, llm, retriever, embed, docs_dir, out_dir, scenario="normal", basin_path=None, seed=0, log=print,
+       verifier_llm=None):
     import pandas as pd
+    from .benchmarks import zopa_bounds
     from .experiment import ROOT
     basin = Basin.load(basin_path or ROOT / "config/basin.yaml", scenario)
+    zopa = zopa_bounds(basin)
     lib = Library(retriever, embed, Path(docs_dir))
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     sheets = W.load_dir(persona_dir)
-    peers = list(W.load_dir(Path(persona_dir).parent).values()) if Path(persona_dir).parent.joinpath("Afghanistan.yaml").exists() else None
+    base_dir = Path(persona_dir).parent
+    peers = list(W.load_dir(base_dir).values()) if base_dir != Path(persona_dir) and list(base_dir.glob("*.yaml")) else None
     results = []
     for i, (pid, ws) in enumerate(sheets.items(), 1):
         t = time.time()
         try:
-            r = eval_persona(ws, llm, retriever, embed, lib, basin, seed)
+            r = eval_persona(ws, llm, retriever, embed, lib, basin, seed, zopa=zopa, verifier_llm=verifier_llm)
         except Exception as e:      # one bad persona should not cost the other runs
             log(f"[{i}/{len(sheets)}] {pid}: FAILED {e!r}")
             (out / f"{pid}.error.txt").write_text(repr(e))
@@ -350,10 +365,13 @@ def run(persona_dir, llm, retriever, embed, docs_dir, out_dir, scenario="normal"
         "json_ok_rate": float(df["json_ok_rate"].mean()),
         "mean_secs_per_call": float(df["mean_secs"].mean()),
         "llm_calls": int(df["calls"].sum()),
+        "mean_batna_score": float(df["batna_score"].mean(skipna=True)),
+        "zopa_exists": bool(zopa["exists"]),
     }
     meta = {"scenario": scenario, "seed": seed, "model": getattr(llm, "model", "") or getattr(llm, "name", ""),
             "backend": getattr(llm, "name", ""), "retriever": type(retriever).__name__,
             "collection": getattr(getattr(retriever, "col", None), "name", None), "library_chunks": len(lib.ids),
+            "zopa": {"batna": zopa["batna"], "ceiling": zopa["ceiling"], "width": zopa["width"]},
             "created": time.strftime("%Y-%m-%d %H:%M")}
     (out / "summary.json").write_text(json.dumps({"meta": meta, "headline": headline,
                                                   "personas": df.to_dict(orient="records")}, indent=1, default=float))

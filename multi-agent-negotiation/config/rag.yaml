@@ -2,7 +2,13 @@
 #   chroma : the team's existing pipeline (ChromaDB + Ollama nomic-embed-text)
 #   bm25   : built in keyword search over corpus/, no services needed
 #   none   : no documents (same as grounding=none)
-backend: chroma
+#
+# Switched to bm25 (2026-11-10) for the Kyrgyzstan-roster rerun: this machine has
+# no amu_darya_v2 collection built in ../chroma_db (confirmed empty), and BM25 is
+# deterministic/reproducible with zero extra services -- the "transparent
+# baseline" per retrieval.py's own docstring. Revert to chroma once the team's
+# index is rebuilt on this machine with `python -m wnego index`.
+backend: bm25
 
 corpus_dir: corpus            # used by bm25
 

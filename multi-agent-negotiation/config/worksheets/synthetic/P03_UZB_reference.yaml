@@ -56,5 +56,5 @@ id: P03_UZB_reference
 synthetic:
   base: Uzbekistan
   perturbation: reference
-  tests: sourced downstream worksheet, control
+  tests: sourced worksheet unchanged, control
   planted: []

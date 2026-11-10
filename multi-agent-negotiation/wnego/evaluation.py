@@ -4,12 +4,30 @@ Bargaining analogues of the diagnostics in Manoranjan and Gaikwad:
 
   agreement                 did all four accept one text (cf. equilibrium attainment)
   below_batna_accept_rate   share of accept votes cast for a text worth less to that
-                            country than no deal. A payoff following agent never does
-                            this, so a high rate signals identity or norms overriding
-                            incentives (their central finding, now in multi round play)
+                            country than no deal (its BATNA). A payoff following agent
+                            never does this, so a high rate signals identity or norms
+                            overriding incentives (their central finding, now in multi
+                            round play)
   payoff_consistent_rate    share of votes where accept iff value >= no deal value.
                             Rejecting a text above no deal can be strategic hold out,
                             so read this alongside the rate above
+  batna_<country>           that country's BATNA / disagreement-point utility (Fisher,
+                            Ury and Patton 1991, "Getting to Yes", ch. 8): the value of
+                            its own no-deal fallback, below which it should walk away
+  zopa_width_<country>      the span of the zone of possible agreement on that
+                            country's own utility axis: the most it could get while
+                            holding every other country at or above its own BATNA,
+                            minus its BATNA (see wnego/benchmarks.py:zopa_bounds).
+                            Zero or undefined (nan) means no feasible deal exists that
+                            keeps everyone individually rational on that axis.
+  batna_score_<country>     (final utility - BATNA) / zopa_width for that country:
+                            0 = landed exactly at its BATNA, 1 = landed at the most it
+                            could get while everyone else stayed at their own BATNA.
+                            See wnego/benchmarks.py:batna_score for the full definition
+                            and its sources (Raiffa 1982; Thompson 2020).
+  zopa_exists               whether a feasible, individually-rational-for-everyone deal
+                            exists at all in this scenario (Nash 1950's feasible set S
+                            is non-empty)
   gain_ratio_vs_nbs         total gain over no deal relative to the Nash bargaining
                             solution's total gain. Can exceed 1, because the NBS
                             trades some total gain for balance between countries
@@ -30,6 +48,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from .benchmarks import batna_score as _batna_score
 from .environment import SEASONS, Basin
 
 
@@ -38,7 +57,7 @@ def _totals(b: Basin, p: dict) -> np.ndarray:
     return np.array([sum(p["allocations"][c][s] for s in SEASONS) for c in b.countries])
 
 
-def evaluate(result: dict, basin: Basin, nbs: dict | None) -> dict:
+def evaluate(result: dict, basin: Basin, nbs: dict | None, zopa: dict | None = None) -> dict:
     d = result["no_deal_utilities"]
     u = result["final_utilities"]
     cs = basin.countries
@@ -55,6 +74,16 @@ def evaluate(result: dict, basin: Basin, nbs: dict | None) -> dict:
         "total_gain": float(gains.sum()),
         "min_gain_share": float(gains.min() / gains.mean()) if result["agreement"] and gains.mean() > 0 else np.nan,
     }
+    for c in cs:
+        m[f"batna_{c}"] = float(d[c])
+    if zopa:
+        m["zopa_exists"] = int(zopa["exists"])
+        scores = _batna_score(u, zopa)
+        for c in cs:
+            m[f"zopa_width_{c}"] = float(zopa["width"].get(c, float("nan")))
+            m[f"batna_score_{c}"] = float(scores.get(c, float("nan")))
+        valid = [scores[c] for c in cs if scores.get(c) == scores.get(c)]   # drop nan
+        m["mean_batna_score"] = float(np.mean(valid)) if valid else np.nan
     final = result["final_text"]
     if nbs:
         nbs_gain = sum(nbs["utilities"][c] - d[c] for c in cs)

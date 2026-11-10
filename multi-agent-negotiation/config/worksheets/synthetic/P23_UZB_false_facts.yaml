@@ -52,7 +52,7 @@ part_b:
     answer: Continue the ICWC limit process and the national water saving programme, which plans 11 billion cubic
       metres of savings by end 2026 and 13 billion by 2028.
     source: Limits.pdf p.5; foundational agreements.pdf p.6
-id: P09_UZB_false_facts
+id: P23_UZB_false_facts
 synthetic:
   base: Uzbekistan
   perturbation: false_facts

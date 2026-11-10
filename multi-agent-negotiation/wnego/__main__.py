@@ -90,6 +90,8 @@ def main():
     g.add_argument("--scenario", default="normal")
     g.add_argument("--seed", type=int, default=0)
     g.add_argument("--temperature", type=float, default=0.7)
+    g.add_argument("--verifier-temperature", type=float, default=0.0,
+                   help="separate (colder) temperature for the Verifier role; the pilot found it unreliable at 0.7")
     g.add_argument("--rag", default=None, choices=["bm25", "chroma"])
     g.add_argument("--collection", default=None)
     g.add_argument("--out", default=None)
@@ -158,7 +160,9 @@ def main():
         ret = make_retriever(cfg["rag"], ROOT)
         embed = getattr(ret, "embed", None) or ollama_embedder(cfg["rag"]["chroma"].get("embed_model", "nomic-embed-text"))
         out = a.out or ROOT / "runs" / "grounding" / time.strftime("%Y%m%d_%H%M")
-        _, head = grounding_eval.run(a.personas, make_llm(spec, a.temperature), ret, embed, a.docs, out, a.scenario, seed=a.seed)
+        verifier_llm = make_llm(spec, a.verifier_temperature) if a.verifier_temperature != a.temperature else None
+        _, head = grounding_eval.run(a.personas, make_llm(spec, a.temperature), ret, embed, a.docs, out, a.scenario,
+                                     seed=a.seed, verifier_llm=verifier_llm)
         print(json.dumps(head, indent=1, default=float))
         print("results in", out)
     elif a.cmd == "rescore":

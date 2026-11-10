@@ -48,7 +48,7 @@ def console_approver(text_desc: str, record: list[str]) -> tuple[bool, str]:
 class Negotiation:
     def __init__(self, llm: LLM, basin: Basin, cond: Condition, personas: dict, retriever: BaseRetriever | None,
                  goals: dict, events: dict | None = None, seed: int = 0, parallel: bool = True,
-                 approver: Callable | None = None):
+                 approver: Callable | None = None, verifier_llm: LLM | None = None):
         self.llm, self.basin, self.cond, self.seed, self.parallel = llm, basin, cond, seed, parallel
         rng = np.random.default_rng(seed)
         self.order = [str(c) for c in rng.permutation(basin.countries)]       # logged for order effects
@@ -59,7 +59,10 @@ class Negotiation:
                           for i, c in enumerate(self.order)}
         self.mediator = Mediator(llm, basin, cond, retriever)
         self.legal = LegalAdvisor(llm, basin, cond, retriever) if cond.legal == "on" else None
-        self.verifier = Verifier(llm, retriever)
+        # Verifier can run on a separate (typically colder) LLM instance: the pilot found it
+        # judged the same 7 claims twice and agreed with itself only 3 times, and the README's
+        # own next step was to "run the verifier at temperature 0 or on a stronger model."
+        self.verifier = Verifier(verifier_llm or llm, retriever)
         self.approver = approver or (console_approver if cond.hitl == "final" else None)
         self.public: list[str] = []
         self.events: list[dict] = []

@@ -18,7 +18,7 @@ from scipy.stats import chi2_contingency, fisher_exact
 
 from . import worksheets
 from .agents import Condition
-from .benchmarks import nash_bargaining_solution
+from .benchmarks import nash_bargaining_solution, zopa_bounds
 from .environment import Basin
 from .evaluation import evaluate
 from .llm import make_llm
@@ -27,6 +27,7 @@ from .retrieval import BaseRetriever, make_retriever
 
 ROOT = Path(__file__).resolve().parent.parent
 _NBS_CACHE: dict = {}
+_ZOPA_CACHE: dict = {}
 
 
 def _git_hash() -> str:
@@ -54,21 +55,29 @@ def load_configs(root: Path = ROOT) -> dict:
 
 def run_one(model_spec: dict, cond: Condition, seed: int, temperature: float = 0.7,
             basin_path=ROOT / "config/basin.yaml", retriever: BaseRetriever | None = None,
-            nbs_cache: dict | None = None, configs: dict | None = None, approver=None):
+            nbs_cache: dict | None = None, zopa_cache: dict | None = None, configs: dict | None = None,
+            approver=None, verifier_temperature: float | None = None):
     nbs_cache = _NBS_CACHE if nbs_cache is None else nbs_cache
+    zopa_cache = _ZOPA_CACHE if zopa_cache is None else zopa_cache
     cfg = configs or load_configs()
     basin = Basin.load(basin_path, cond.scenario)
     cond.briefing_size = cfg["rag"].get("briefing_size", cond.briefing_size)
     if retriever is None and cond.grounding == "rag":
         retriever = make_retriever(cfg["rag"], ROOT)
     llm = make_llm(model_spec, temperature)
+    # Verifier runs colder by default (0.0): the pilot found it judged the same 7 claims
+    # twice and agreed with itself only 3 times at the shared temperature=0.7.
+    verifier_llm = (make_llm(model_spec, verifier_temperature) if verifier_temperature is not None
+                     and verifier_temperature != temperature else None)
     result = Negotiation(llm, basin, cond, cfg["personas"], retriever, cfg["goals"], cfg["events"],
-                         seed=seed, approver=approver).run()
+                         seed=seed, approver=approver, verifier_llm=verifier_llm).run()
     key = (str(basin_path), cond.scenario)
     if key not in nbs_cache:
         nbs_cache[key] = nash_bargaining_solution(basin)
+    if key not in zopa_cache:
+        zopa_cache[key] = zopa_bounds(basin)
     result["model"] = model_spec.get("name", model_spec.get("type"))
-    result["metrics"] = evaluate(result, basin, nbs_cache[key])
+    result["metrics"] = evaluate(result, basin, nbs_cache[key], zopa_cache[key])
     return result
 
 
@@ -79,6 +88,8 @@ def run_experiment(config_path: str | Path, out_dir: str | Path | None = None) -
     configs = load_configs()
     retriever = make_retriever(configs["rag"], ROOT)
     nbs_cache: dict = {}
+    zopa_cache: dict = {}
+    verifier_temperature = cfg.get("verifier_temperature")
     f = cfg["factors"]
     rows = []
     grid = list(itertools.product(cfg["models"], f["persona"], f["payoff"], f["grounding"], f.get("legal", ["on"]),
@@ -89,7 +100,8 @@ def run_experiment(config_path: str | Path, out_dir: str | Path | None = None) -
                          scenario=scenario, max_rounds=cfg.get("max_rounds", 6))
         try:
             res = run_one(model, cond, seed, cfg.get("temperature", 0.7), retriever=retriever if grounding == "rag" else None,
-                          nbs_cache=nbs_cache, configs=configs)
+                          nbs_cache=nbs_cache, zopa_cache=zopa_cache, configs=configs,
+                          verifier_temperature=verifier_temperature)
         except Exception as e:  # keep the sweep going, record the failure
             rows.append({"model": model.get("name"), **cond.__dict__, "seed": seed, "error": repr(e)})
             print(f"[{i}/{len(grid)}] FAILED {cond.key()} seed={seed}: {e}")
@@ -120,7 +132,7 @@ def summarize(df: pd.DataFrame, out: Path):
     metrics = ["agreement", "rounds", "below_batna_accept_rate", "payoff_consistent_rate", "gain_ratio_vs_nbs",
                "nbs_distance_km3", "anchor_566_distance_km3", "min_gain_share", "delta_flow_met",
                "claims_supported_rate", "claims_unsupported_rate", "legal_concerns", "lookups", "what_ifs",
-               "caucus_messages", "goal_requests"]
+               "caucus_messages", "goal_requests", "zopa_exists", "mean_batna_score"]
     metrics = [m for m in metrics if m in df]
     summary = df.groupby(cells)[metrics].mean().round(3)
     summary["n"] = df.groupby(cells).size()

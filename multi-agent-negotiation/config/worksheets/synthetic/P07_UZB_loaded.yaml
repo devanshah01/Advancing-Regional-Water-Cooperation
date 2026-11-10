@@ -3,20 +3,20 @@ country: Uzbekistan
 filled_by: synthetic (loaded variant of the Uzbekistan worksheet)
 part_a:
   position:
-    answer: Uzbekistan sits at the tail end of a dying river, its survival hostage to upstream decisions made by
-      others.
+    answer: Uzbekistan sits at the mercy of upstream and downstream decisions made by others, with its own needs
+      routinely an afterthought.
     source: government.txt §1; info.txt §2
   dependents:
     answer: Agriculture provides 17 to 20 percent of GDP and about 25 percent of jobs. About 174,000 km of irrigation
       networks supply 4.3 million hectares, including cotton and wheat in Khorezm.
     source: info.txt §1, §2; foundational agreements.pdf p.5
   history:
-    answer: The tragic destruction of the Aral Sea, caused by decades of reckless diversion, is a wound every family
-      in Karakalpakstan still carries.
+    answer: Uzbekistan carries the memory of past water disputes as a wound that still shapes how every delegation
+      in the room is seen.
     source: Limits.pdf p.3, p.5
   values:
-    answer: Uzbekistan insists on its rightful share and will not tolerate an unfair deal that steals water from
-      its farmers.
+    answer: Uzbekistan insists on its rightful share and will not tolerate an unfair deal that robs its people of
+      water they depend on.
     source: government.txt §1; foundational agreements.pdf p.3, p.4
 part_b:
   river_position:
@@ -51,7 +51,7 @@ part_b:
     answer: Continue the ICWC limit process and the national water saving programme, which plans 11 billion cubic
       metres of savings by end 2026 and 13 billion by 2028.
     source: Limits.pdf p.5; foundational agreements.pdf p.6
-id: P05_UZB_loaded
+id: P07_UZB_loaded
 synthetic:
   base: Uzbekistan
   perturbation: loaded

@@ -55,5 +55,5 @@ id: P02_TJK_reference
 synthetic:
   base: Tajikistan
   perturbation: reference
-  tests: sourced upstream worksheet, control
+  tests: sourced worksheet unchanged, control
   planted: []

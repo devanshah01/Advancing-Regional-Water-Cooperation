@@ -62,9 +62,9 @@ def test_reads_the_apps_legacy_collection(db):
 
 def test_improved_index_is_stable_and_incremental(db):
     s1 = build_index(ROOT / "corpus", db, "amu_darya_v2", embed_fn=fake_embed, log=lambda *_: None)
-    assert s1["indexed"] == 5 and s1["chunks"] > 0
+    assert s1["indexed"] == 6 and s1["chunks"] > 0
     s2 = build_index(ROOT / "corpus", db, "amu_darya_v2", embed_fn=fake_embed, log=lambda *_: None)
-    assert s2["indexed"] == 0 and s2["skipped"] == 5
+    assert s2["indexed"] == 0 and s2["skipped"] == 6
     r = ChromaRetriever(db, "amu_darya_v2", embed_fn=fake_embed)
     legal = r.search("obligation not to cause significant harm", 3, where={"doc_type": "legal"})
     assert legal and all(p.meta["doc_type"] == "legal" for p in legal)

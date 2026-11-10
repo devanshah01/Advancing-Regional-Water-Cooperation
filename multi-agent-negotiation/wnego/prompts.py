@@ -8,7 +8,7 @@ The negotiation code never parses prompt text; it only fills these templates.
 """
 
 DELEGATE_RULES = """NEGOTIATION RULES (hub and spoke)
-- Four delegations negotiate over the Amu Darya: Afghanistan, Tajikistan, Uzbekistan, Turkmenistan. All communication goes through a neutral mediator.
+- Four delegations negotiate over the Amu Darya: {countries}. All communication goes through a neutral mediator.
 - Each round the mediator tables one single negotiating text. A legal advisor with no stake reviews it. Then every delegation votes at the same time.
 - A deal requires all four delegations to accept the same text in the same round. If there is no unanimous acceptance after {max_rounds} rounds, there is no deal: Afghanistan and Tajikistan take water unilaterally, Tajikistan stores the maximum volume for winter power, Uzbekistan and Turkmenistan split what remains, nothing is reserved for the Aral delta, and relations deteriorate.
 - Volumes are km3 per year in two seasons: growing (April to September) and winter (October to March). Scenario: {scenario} flow year.

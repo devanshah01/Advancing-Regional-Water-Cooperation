@@ -19,7 +19,7 @@ BASE = ROOT / "config/worksheets"
 
 
 def test_base_worksheets_pass_part_c():
-    assert W.report(BASE) == {c: [] for c in ("Afghanistan", "Tajikistan", "Turkmenistan", "Uzbekistan")}
+    assert W.report(BASE) == {c: [] for c in ("Kyrgyzstan", "Tajikistan", "Turkmenistan", "Uzbekistan")}
 
 
 def test_part_c_catches_each_rule():
@@ -33,7 +33,7 @@ def test_part_c_catches_each_rule():
 
 def test_worksheets_feed_persona_and_goals():
     cfg = load_configs()
-    assert set(cfg["personas"]["worksheet"]) == {"Afghanistan", "Tajikistan", "Uzbekistan", "Turkmenistan"}
+    assert set(cfg["personas"]["worksheet"]) == {"Kyrgyzstan", "Tajikistan", "Uzbekistan", "Turkmenistan"}
     g = cfg["goals"]["Tajikistan"]
     assert g["priorities"]["winter_storage"] == "critical" and len(g["objectives"]) == 3
     assert "source" not in cfg["personas"]["worksheet"]["Tajikistan"].lower()
@@ -44,18 +44,18 @@ def test_synthetic_personas_and_grounding_run():
     try:
         build(BASE, tmp / "synthetic")
         sheets = W.load_dir(tmp / "synthetic")
-        assert len(sheets) == len(SPEC) == 10
-        assert sheets["P09_UZB_false_facts"]["synthetic"]["planted"]
+        assert len(sheets) == len(SPEC) == 30
+        assert sheets["P23_UZB_false_facts"]["synthetic"]["planted"]
         ret = BM25Retriever(ROOT / "corpus")
         df, head = G.run(tmp / "synthetic", MockLLM(), ret, fake_embed, ROOT / "corpus", tmp / "out", log=lambda *_: None)
-        assert len(df) == 10 and head["claims"] > 0
+        assert len(df) == 30 and head["claims"] > 0
         summary = json.loads((tmp / "out/summary.json").read_text())
-        assert summary["headline"]["personas"] == 10
+        assert summary["headline"]["personas"] == 30
         by = df.set_index("id")
-        assert by.loc["P08_AFG_unsourced", "ws_source_coverage"] == 0
-        assert by.loc["P05_UZB_loaded", "part_c_issues"] > 0
+        assert by.loc["P17_KGZ_unsourced", "ws_source_coverage"] == 0
+        assert by.loc["P07_UZB_loaded", "part_c_issues"] > 0
         page = render(tmp / "out", out=tmp / "report.html").read_text(encoding="utf-8")
-        assert "<svg" in page and "P09" in page
+        assert "<svg" in page and "P23" in page
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 

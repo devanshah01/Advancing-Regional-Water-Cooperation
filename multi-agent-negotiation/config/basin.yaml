@@ -33,16 +33,26 @@ protocol_566_km3:
   Uzbekistan: 29.6
   Turkmenistan: 22.0
   Tajikistan: 9.5
-  Afghanistan: 2.1     # assumed by Protocol 566, Afghanistan was not consulted
+  Kyrgyzstan: 0.4      # SOURCED: protocol_566_allocation.md -- 0.6% of the 61.5 km3 total, the smallest share of any party
 
 countries:
-  Afghanistan:
-    position: upstream (Panj and northern tributaries), building Qosh Tepa canal
-    irrigation_growing: 420     # A in A*ln(1+w). ILLUSTRATIVE
-    irrigation_winter: 40
+  # Kyrgyzstan replaces Afghanistan as the fourth delegation (2026-11-10). It is not
+  # literally an Amu Darya riparian (its main territory and irrigation sit in the
+  # Syr Darya basin), but it holds headwater tributaries feeding the Amu Darya via
+  # the Pamir-Alai range and was a Protocol 566 party (SOURCED, see share above),
+  # so it keeps the "upstream, smallest historical share" structural role
+  # Afghanistan played. See corpus/kyrgyzstan_upstream.md and data/Kyrgystan.txt.
+  Kyrgyzstan:
+    position: upstream (Pamir-Alai headwater tributaries), smallest Protocol 566 share, aging hydro infrastructure
+    irrigation_growing: 90      # A in A*ln(1+w). ILLUSTRATIVE, scaled down from Afghanistan's 420: Kyrgyzstan's real
+                                 # Amu-Darya-side irrigation footprint is far smaller (0.4 km3 historical share vs 2.1 km3)
+    irrigation_winter: 15
     hydropower_per_km3_shift: 0
     delta_penalty_per_km3: 0
-    unilateral_take: {growing: 6.0, winter: 1.0}   # Qosh Tepa without a deal. ILLUSTRATIVE (sources cite up to 10 km3/yr at full operation)
+    unilateral_take: {growing: 0.5, winter: 0.2}   # new upstream reservoirs/micro-hydro without a deal. ILLUSTRATIVE,
+                                                    # anchored above the 0.4 km3 Protocol 566 share (SOURCED) rather than
+                                                    # Qosh Tepa's 10 km3/yr ceiling, since Kyrgyzstan's dossier describes
+                                                    # small-scale reservoirs/micro-hydro, not a farmland diversion canal
   Tajikistan:
     position: upstream, Vakhsh and Panj, Nurek and Rogun storage
     irrigation_growing: 260
@@ -64,7 +74,7 @@ countries:
     delta_penalty_per_km3: 50
 
 # What happens with no agreement (each delegate's walk away point):
-# Afghanistan and Tajikistan take their unilateral volumes, Tajikistan shifts the
+# Kyrgyzstan and Tajikistan take their unilateral volumes, Tajikistan shifts the
 # full storage volume to winter, Uzbekistan and Turkmenistan split what is left by
 # their Protocol 566 ratio, nothing is reserved for the delta, and every country
 # pays a diplomatic conflict cost.

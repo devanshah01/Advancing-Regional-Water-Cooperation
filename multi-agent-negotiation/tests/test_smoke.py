@@ -56,7 +56,7 @@ class ScriptedLLM(LLM):
             return '{"assessments": [{"principle": "no significant harm", "finding": "concern", "explanation": "x", "cite": null}], "summary": "ok"}'
         if "Table the single negotiating text" in user:
             return json.dumps({"proposal": {"allocations": {
-                "Afghanistan": {"growing": 5, "winter": 2}, "Tajikistan": {"growing": 5, "winter": 3},
+                "Kyrgyzstan": {"growing": 5, "winter": 2}, "Tajikistan": {"growing": 5, "winter": 3},
                 "Uzbekistan": {"growing": 14, "winter": 8}, "Turkmenistan": {"growing": 11, "winter": 6}},
                 "tajik_storage_shift": 3}, "explanation": "draft", "caucus_replies": {"Uzbekistan": "noted"}, "claims": []})
         if "opening round" in user:

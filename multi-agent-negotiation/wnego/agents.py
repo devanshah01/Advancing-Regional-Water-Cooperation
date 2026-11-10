@@ -114,7 +114,8 @@ class Delegate:
         self.system = "\n\n".join([
             persona_text(personas, cond.persona, country),
             P.DELEGATE_RULES.format(max_rounds=cond.max_rounds, scenario=cond.scenario,
-                                    max_shift=basin.cfg["max_storage_shift"], whatif_payoff=whatif_payoff),
+                                    max_shift=basin.cfg["max_storage_shift"], whatif_payoff=whatif_payoff,
+                                    countries=", ".join(basin.countries)),
             P.GROUNDING_RAG if cond.grounding == "rag" else P.GROUNDING_NONE,
             payoff_rule,
         ])
@@ -175,9 +176,15 @@ class Delegate:
         return []
 
     def _mock_opening(self):
+        par = self.basin.cfg["countries"][self.country]
         ref = self.basin.cfg["protocol_566_km3"][self.country]
-        bump = 1.3 if self.country in ("Afghanistan", "Tajikistan") else 1.05
-        ask = {"allocations": {self.country: {"growing": round(0.7 * ref * bump + (2.0 if self.country == "Afghanistan" else 0), 2),
+        upstream = str(par.get("position", "")).startswith("upstream")
+        bump = 1.3 if upstream else 1.05
+        # generalized Qosh-Tepa-style aggressive ask: any country with a unilateral-take
+        # overhang beyond its historical Protocol 566 share opens asking for that overhang too
+        take = par.get("unilateral_take") or {}
+        extra = max(0.0, sum(take.values()) - ref)
+        ask = {"allocations": {self.country: {"growing": round(0.7 * ref * bump + extra, 2),
                                               "winter": round(0.3 * ref * bump, 2)}}}
         if self.country == self.basin.cfg["storage_country"]:
             ask["tajik_storage_shift"] = self.basin.cfg["max_storage_shift"]

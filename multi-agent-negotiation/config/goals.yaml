@@ -11,15 +11,15 @@
 #
 # Fields: bloc, objectives (list), priorities (map), red_lines (list), fallback (text)
 
-Afghanistan:
-  bloc: upstream (Panj and northern tributaries)
+Kyrgyzstan:
+  bloc: upstream (Pamir-Alai headwater tributaries)
   objectives:
-    - Secure growing season water for the Qosh Tepa canal command area in northern Afghanistan
-    - Be recognised as a full riparian party in any basin arrangement
-  priorities: {growing_water: high, winter_water: low, side_payments: medium, recognition: high}
+    - Secure recognition of its right to build upstream reservoirs and micro-hydropower projects
+    - Obtain climate adaptation funding and energy sharing compensation
+  priorities: {winter_storage: high, growing_water: low, side_payments: medium, energy_sovereignty: high}
   red_lines:
-    - No text that gives Afghanistan less than the 2.1 km3 assumed for it in Protocol 566   # DRAFT
-  fallback: Continue building and operating Qosh Tepa unilaterally.
+    - No text that caps Kyrgyzstan at or below its 0.4 km3 Protocol 566 share without compensation   # DRAFT
+  fallback: Continue operating and expanding hydroelectric infrastructure unilaterally.
 
 Tajikistan:
   bloc: upstream (Vakhsh and Panj, Nurek and Rogun storage)
