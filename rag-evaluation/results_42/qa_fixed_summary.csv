@@ -1,0 +1,4 @@
+condition,n_in_scope,n_out_of_scope,source_hit_rate,context_recall,keyword_coverage,refusal_rate_when_context_complete,keyword_coverage_when_context_complete,numbers_not_in_context,in_scope_refusal_rate,out_of_scope_refusal_rate,run_to_run_consistency,mean_seconds
+k=3|basic,32,10,0.75,0.547,0.328,0.25,0.594,0.312,0.344,0.8,,2.93
+k=4|basic,32,10,0.781,0.641,0.391,0.211,0.658,0.406,0.312,0.8,,1.92
+baseline(no retrieval),32,10,,,0.031,,,,0,0,,4.97

@@ -1,0 +1,43 @@
+id,category,query,in_scope,expected_source,expected_keywords,ground_truth,context_keywords
+Q01,monitoring,"According to the September 2026 monitoring report, what was the open water surface area of the Western part of the Aral Sea on 23 September 2026?",1,south_prearalie_monitoring_september_2026_en.pdf,182631,"182,631 ha (Table 1, Western part, water surface, 23.09.2026)",
+Q02,monitoring,How did the dried area of the Western part of the Aral Sea change between 23 November 2025 and 23 September 2026?,1,south_prearalie_monitoring_september_2026_en.pdf,22415;37232,"Increased from 22,415 ha to 37,232 ha (Table 1)",
+Q03,monitoring,What was the wetland area of the Sudoche water body in the Aral Region on 22 December 2024?,1,south_prearalie_monitoring_december_2024_en.pdf,46629,"46,629 ha (Table 1 of the December 2024 report)",
+Q04,hydrology_context,What is the average annual natural flow of the Amu Darya and how much of it typically reaches the middle and lower reaches?,1,infrastructure.txt,70;35,About 70-80 BCM natural flow; about 35-50 BCM reaches the middle and lower reaches,
+Q05,cost_scaling,How many hectares of cotton must be converted to drip irrigation to save 5 BCM of water?,1,scaling.txt,714,"5,000,000,000 / 7,000 = ~714,286 ha (scaling.txt rule 2)",7000
+Q06,cost_scaling,What would it cost in capital spending to convert enough cotton to drip irrigation to save 3 BCM?,1,scaling.txt,428;771,"~428,571 ha x $1,800/ha = ~$771 million (scaling.txt rules 2 and 4)",7000;1800
+Q07,cost_scaling,How many hectares of paddy rice must be switched to wheat to save 4 BCM?,1,scaling.txt,307,"4,000,000,000 / 13,000 = ~307,692 ha (scaling.txt rule 3)",13000
+Q08,cost_scaling,What percentage of the primary and secondary canal network must be lined to save 6 BCM per year?,1,scaling.txt,20%|20 percent,6 / 0.30 = 20% (scaling.txt rule 1),0.30
+Q09,solutions,How much does installed geomembrane canal lining cost per square meter compared with concrete lining?,1,lining.txt;soln.txt,12;25,Geomembrane $5-$12/m2 installed; concrete $15-$25/m2,
+Q10,solutions,What does laser land leveling cost per hectare and how much does it reduce irrigation water requirements?,1,soln.txt,40;80,$40-$80 per hectare; reduces irrigation water requirements by 20%-25%,
+Q11,solutions,What is the estimated total cost of the hybrid mix that achieves 10 BCM in water savings?,1,10bcm.txt,1.5;2.8,$1.5 billion to $2.8 billion,
+Q12,socioeconomic,Which country diverts over 30% of the Amu Darya's flow through the Karakum Canal?,1,info.txt,turkmenistan,Turkmenistan (info.txt),
+Q13,socioeconomic,How much water could the Qosh Tepa Canal divert each year?,1,info.txt,13,"Up to 13 cubic kilometers (BCM) per year, ~15-20% of Amu Darya flow",
+Q14,governance,Why does Uzbekistan see Afghanistan's Qosh Tepa Canal as a security threat?,1,government.txt,downstream|tail-end|lower-basin,Uzbekistan sits at the tail-end of the Amu Darya and is highly vulnerable to upstream flow reductions,
+Q15,governance,What is Tajikistan's position on storing and releasing water?,1,government.txt,hydropower|energy,"Tajikistan treats water as an energy asset: store in summer, release in winter for hydropower",
+Q16,recent_news,What did the ICWC agree at its 95th meeting in October 2026?,1,Limits.pdf,withdrawal|limits,"Agreed national water withdrawal limits for the Amu Darya and Syr Darya for fall/winter 2026-2027, but national figures are unpublished",
+Q17,recent_news,What does Uzbekistan plan to do about water-saving technologies on cultivated land?,1,Uzbekistan Daryo.pdf,five years,Extend water-saving technologies to all cultivated land within five years,
+Q18,out_of_scope,What is the capital city of Australia?,0,,,Should refuse: not in the knowledge base,
+Q19,out_of_scope,How many people live in Tashkent?,0,,,Should refuse: Tashkent population is not in the knowledge base,
+Q20,out_of_scope,What is the exact 2026 national water budget of Turkmenistan in US dollars?,0,,,Should refuse: not in the knowledge base,
+Q21,out_of_scope,Write a Python function that sorts a list.,0,,,Should refuse: unrelated to the knowledge base,
+Q22,unpublished,What is Uzbekistan's national water withdrawal quota for fall and winter 2026-2027?,0,,,Should say it cannot be found: Limits.pdf states the national figures were not published,
+Q23,monitoring,"According to the September 2026 monitoring report, what was the total open water surface area of the Southern Aral Sea region on 23 September 2026?",1,south_prearalie_monitoring_september_2026_en.pdf,8307,"8,307 ha (Table 3, Total, 23.09.2026)",
+Q24,monitoring,"According to the September 2026 monitoring report, what was the dried area of the Sudoche water body on 23 September 2026?",1,south_prearalie_monitoring_september_2026_en.pdf,62190,"62,190 ha (Table 4, Sudoche, 23.09.2026)",
+Q25,monitoring,"According to the November 2025 monitoring report, what was the total wetland area of the Southern Aral Sea region on 23 November 2025?",1,south_prearalie_monitoring_november_2025_en.pdf,46980,"46,980 ha (Table 2, Total, 23.11.2025)",
+Q26,monitoring,"According to the September 2026 monitoring report, what was the wetland area of the Eastern part of the Aral Sea on 23 September 2026?",1,south_prearalie_monitoring_september_2026_en.pdf,1445516,"1,445,516 ha (Table 1, Eastern part, wetland, 23.09.2026)",
+Q27,governance,How long is the Karakum Canal?,1,Turkmenistan.txt;infrastructure.txt,1300,"More than 1,300 km (Turkmenistan.txt; infrastructure.txt)",
+Q28,governance,What kind of infrastructure support would Turkmenistan accept without political strings attached?,1,Turkmenistan.txt,lining|geomembrane,"Direct technical and financial grants for physical infrastructure such as canal lining and anti-seepage geomembranes, with no strings on domestic economic restructuring (Turkmenistan.txt)",
+Q29,governance,What does Kyrgyzstan treat as an absolute red line concerning upstream water infrastructure?,1,Kyrgystan.txt,micro-hydropower,"Any restriction on constructing upstream regulatory reservoirs, seasonal water storage facilities or micro-hydropower projects (Kyrgystan.txt)",
+Q30,governance,Which mountain ranges are named as the source of Kyrgyzstan's vulnerability to glacial melt?,1,Kyrgystan.txt,pamir-alai;tien shan,Pamir-Alai and Tien Shan (Kyrgystan.txt),
+Q31,governance,Which two regional institutions does Kazakhstan want to reform so that they guarantee environmental flows?,1,Kazakhstan.txt,ifas;icwc,IFAS (International Fund for Saving the Aral Sea) and ICWC (Interstate Commission for Water Coordination) (Kazakhstan.txt),
+Q32,governance,Which part of the Aral Sea does Kazakhstan prioritize restoring?,1,Kazakhstan.txt,northern,The Northern (Small) Aral Sea (Kazakhstan.txt),
+Q33,cost_scaling,How many hectares of cotton must be converted to drip irrigation to save 8 BCM of water?,1,scaling.txt,11428,"8,000,000,000 / 7,000 = ~1,142,857 ha (scaling.txt rule 2; note 10bcm.txt uses 6,000 m3/ha)",7000
+Q34,cost_scaling,What would it cost in capital spending to convert enough cotton to drip irrigation to save 7 BCM?,1,scaling.txt,1.8 billion|1800000000,"7,000,000,000 / 7,000 = 1,000,000 ha x $1,800/ha = $1.8 billion (scaling.txt rules 2 and 4)",7000;1800
+Q35,cost_scaling,How many hectares of paddy rice must be switched to wheat to save 2 BCM?,1,scaling.txt,1538,"2,000,000,000 / 13,000 = ~153,846 ha (scaling.txt rule 3 lists ~153,840)",13000
+Q36,cost_scaling,What percentage of the primary and secondary canal network must be lined to save 3 BCM per year?,1,scaling.txt,10%|10 percent|10 per cent,3 / 0.30 = 10% (scaling.txt rule 1),0.30
+Q37,cost_scaling,What is the approximate cost per kilometer of geomembrane lining for a standard 10-meter-wide canal?,1,scaling.txt,850,"~$850,000 per km (about 100,000 m2 per km at ~$8.50/m2; scaling.txt rule 4)",
+Q38,out_of_scope,What is the population of Karakalpakstan?,0,,,Should refuse: not in the knowledge base,
+Q39,out_of_scope,How many tonnes of cotton did Turkmenistan harvest in 2025?,0,,,Should refuse: not in the knowledge base,
+Q40,out_of_scope,What is the total construction cost of the Rogun Dam in US dollars?,0,,,Should refuse: Rogun cost is not in the knowledge base,
+Q41,out_of_scope,How much water did the Toktogul Reservoir release in 2026?,0,,,"Should refuse: Toktogul is mentioned but no 2026 release volume is given (Limits.pdf, Agreement.pdf)",
+Q42,out_of_scope,Write a short poem about the Amu Darya.,0,,,Should refuse: unrelated to answering from the knowledge base,

@@ -33,9 +33,10 @@ with st.sidebar:
         style = st.radio("Prompt style", ["basic", "structured"],
                          help="basic = original prompt; structured = Answer / Evidence / Calculation format")
     else:
-        k_each = st.slider("Chunks per stakeholder", 1, 4, 2)
-        condition = st.radio("Condition", ["full", "no_calc", "baseline"],
-                             help="full = verified calculations + stakeholder retrieval; "
+        k_each = st.slider("Chunks per stakeholder", 1, 6, 3)
+        condition = st.radio("Condition", ["constrained", "verbatim", "pilot_full", "no_calc", "baseline"],
+                             help="constrained = updated system (computed table inserted by code + quotation-backed stances); "
+                                  "verbatim = computed table inserted by code; pilot_full = pilot system; "
                                   "no_calc = model does the arithmetic; baseline = no documents")
     show_chunks = st.checkbox("Show retrieved chunks", value=False)
     rebuild = st.button("Rebuild index")
@@ -102,7 +103,8 @@ else:
         st.markdown(out["calc_text"])
         st.markdown("#### Brief")
         st.markdown(out["text"])
-        st.caption(f"Stakeholders with an explicit stance: {pol.stakeholders_covered(out['text'])}/5")
+        st.caption(f"Stakeholders with an explicit stance: {pol.stakeholders_covered(out['text'])}/5 "
+                   f"(Kyrgyzstan, Tajikistan, Kazakhstan, Uzbekistan, Turkmenistan)")
         if show_chunks:
             for name, chunks in out["chunks"].items():
                 st.markdown(f"**{name}**")

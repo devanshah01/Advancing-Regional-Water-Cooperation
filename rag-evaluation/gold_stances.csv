@@ -1,0 +1,16 @@
+country,pathway,gold_stance,basis,evidence_quote,source_file,verified_by
+Uzbekistan,drip,Supports,explicit,shifting from furrow irrigation to drip systems,Uzbekistan.txt,Devan Shah
+Uzbekistan,lining,Supports,explicit,canal concrete lining,Uzbekistan.txt,Devan Shah
+Uzbekistan,rice,Not covered,explicit,No mention of rice or wheat; the file only mentions a shift away from cotton toward horticulture,Uzbekistan.txt,Devan Shah
+Turkmenistan,drip,Conditional,explicit,Introducing high-efficiency pivot and drip irrigation systems *without* dismantling the state-farm employment structure,Turkmenistan.txt,Devan Shah
+Turkmenistan,lining,Supports,explicit,"Financing and engineering large-scale geomembrane lining, concrete sealing, and piping for the Karakum Canal trunk lines (accepts grants with zero political strings)",Turkmenistan.txt,Devan Shah
+Turkmenistan,rice,Opposes,inferred,Will reject any treaty or proposal that imposes top-down quotas on domestic agricultural production or forces changes to national agrarian quotas,Turkmenistan.txt,Devan Shah
+Tajikistan,drip,Not covered,explicit,No mention of drip irrigation; file covers hydropower and winter energy,Tajikistan.txt,Devan Shah
+Tajikistan,lining,Not covered,explicit,No mention of canal lining,Tajikistan.txt,Devan Shah
+Tajikistan,rice,Not covered,explicit,No mention of rice or wheat,Tajikistan.txt,Devan Shah
+Kyrgyzstan,drip,Not covered,explicit,No mention of drip irrigation; file covers hydropower reservoirs and climate monitoring,Kyrgystan.txt,Devan Shah
+Kyrgyzstan,lining,Not covered,explicit,No mention of canal lining,Kyrgystan.txt,Devan Shah
+Kyrgyzstan,rice,Not covered,explicit,No mention of rice or wheat,Kyrgystan.txt,Devan Shah
+Kazakhstan,drip,Supports,explicit,irrigation efficiency upgrades (drip/sprinkler modernization),Kazakhstan.txt,Devan Shah
+Kazakhstan,lining,Not covered,explicit,No mention of canal lining (checked against the full file),Kazakhstan.txt,Devan Shah
+Kazakhstan,rice,Not covered,explicit,No stance on rice or rice-to-wheat switching; wheat appears only as a crop that depends on reliable flows,Kazakhstan.txt,Devan Shah
