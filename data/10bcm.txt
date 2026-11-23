@@ -1,20 +1,17 @@
-================================================================================
-COST-EFFICIENCY ANALYSIS: ACHIEVING 10 BCM IN WATER SAVINGS
-================================================================================
-
-To achieve a target of 10 Billion Cubic Meters (BCM) in annual water savings across the Amu Darya basin at the lowest possible cost, a hybrid infrastructure and agricultural strategy must be evaluated:
-
-1. OPTION A: Primary Canal Lining (Concrete vs. Geomembrane)
-- Water Saved: Lining the upper 20% to 30% of high-seepage primary canals saves approximately 4 to 7 BCM.
-- Cost Efficiency: Geomembrane lining installed at ~$5 to $12 per m^2 is significantly cheaper than concrete ($15-$25 per m^2). However, lining alone across thousands of kilometers of main trunk canals requires a multi-billion dollar capital investment to reach a full 10 BCM threshold.
-
-2. OPTION B: On-Farm Drip Irrigation Conversion (Cotton)
-- Water Saved: Converting inefficient furrow-irrigated cotton to subsurface drip saves ~6,000 m3 per hectare. 
-- To save 10 BCM purely through drip irrigation conversion, roughly 1.6 million hectares would need to be converted. At $1,200 to $2,500 per hectare, total capital costs would range from $1.9 Billion to $4.0 Billion USD.
-
-3. OPTION C: The Most Cost-Efficient Combined Pathway (The Optimal Mix)
-To reach 10 BCM at the absolute lowest cost, experts recommend a combined multi-step approach rather than relying on a single method:
-- Step 1 (Low-Cost Operational Shifts & Laser Leveling): Laser-leveling hundreds of thousands of hectares (~$50/ha) combined with shifting 200,000 hectares of high-waste paddy rice to wheat saves roughly 2 to 3 BCM at minimal structural cost.
-- Step 2 (Strategic Geomembrane Lining): Lining the highest-loss sandy stretches of primary arterial canals (like upper segments of the Karakum or regional feeder trunks) captures 4 to 5 BCM.
-- Step 3 (Targeted Drip Adoption): Subsidizing drip kits for high-yield commercial cotton farms captures the remaining 2 to 3 BCM.
-- Total Estimated Cost for the 10 BCM Hybrid Mix: Approximately $1.5 Billion to $2.8 Billion USD total across regional state budgets and international development banks (such as World Bank / ADB co-financing), making targeted canal geomembrane lining paired with rice-to-wheat crop switching the most cost-efficient components per cubic meter saved.
+[Dossier: 10 BCM Cost-Efficiency | Overview: Target & Strategy]
+Achieving 10 Billion Cubic Meters (BCM) in annual water savings across the Amu Darya basin at the lowest possible cost requires evaluating standalone infrastructure and agricultural pathways against a combined hybrid strategy.
+---
+[Dossier: 10 BCM Cost-Efficiency | Option A: Primary Canal Lining]
+Lining the upper 20% to 30% of high-seepage primary canals saves roughly 4 to 7 BCM annually. Installed geomembrane lining (~$5 to $12/m2) is far cheaper than concrete ($15 to $25/m2), yet relying on canal lining alone across thousands of kilometers of main trunks requires a multi-billion-dollar investment to reach 10 BCM.
+---
+[Dossier: 10 BCM Cost-Efficiency | Option B: Cotton Drip Conversion]
+Converting furrow-irrigated cotton to subsurface drip saves ~6,000 m3 per hectare. Reaching 10 BCM purely through drip irrigation requires converting roughly 1.6 million hectares; at $1,200 to $2,500 per hectare, total capital costs range from $1.9 Billion to $4.0 Billion USD.
+---
+[Dossier: 10 BCM Cost-Efficiency | Option C Step 1: Leveling & Crops]
+In the optimal 10 BCM hybrid pathway, Step 1 pairs low-cost operational shifts with laser land leveling (~$50/ha across hundreds of thousands of hectares) and converting 200,000 hectares of paddy rice to wheat, saving roughly 2 to 3 BCM at minimal structural cost.
+---
+[Dossier: 10 BCM Cost-Efficiency | Option C Step 2: Strategic Lining]
+In Step 2 of the optimal 10 BCM hybrid pathway, lining the highest-loss sandy stretches of primary arterial canals (such as upper segments of the Karakum Canal and regional feeder trunks) with geomembranes captures 4 to 5 BCM of annual water savings.
+---
+[Dossier: 10 BCM Cost-Efficiency | Option C Step 3: Targeted Drip & Total Cost]
+Step 3 subsidizes drip irrigation for high-yield commercial cotton farms to capture the final 2 to 3 BCM. Total hybrid cost is ~$1.5B to $2.8B USD via state budgets and development banks (World Bank / ADB), making targeted geomembrane lining plus rice-to-wheat switching the cheapest options per cubic meter saved.

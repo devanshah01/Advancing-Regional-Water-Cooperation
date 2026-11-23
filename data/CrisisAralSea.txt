@@ -1,9 +1,14 @@
-The crisis of the Aral Sea is a very dramatic event of modernity. In the recent past, the Aral was a unique natural object – a saline sea with a volume of 1083 km3 and an area of 68 thousand km2, with high biological productivity and a peculiar world of living organisms.
-
-In the second half of the 20th century, large-scale programs for the development of new lands were carried out in the Aral Sea basin, as a result of which the area of irrigated land and the amount of water intake doubled. As a result, the water supply in the Aral Sea increased sharply, the water level in the sea dropped by more than 20 m by 2000, while the volume decreased by 6.4 times, and the water surface area dwindled more than three times.
-
-All this resulted in the deterioration of the socio-economic and ecological situation of the whole region. The Aral Sea ecological disaster has an impact on the quality of life and living conditions of more than 50 million residents of the region – by declining incomes, destruction of culture, migration growth, low life expectancy, high infant mortality, the growth of bacterial and viral diseases – this is an incomplete list of the consequences of the ecological crisis.
-
-In order to eliminate the consequences of the drying up of the Aral Sea, to prevent the ecological and socio-economic crisis in the Aral Sea basin, and to improve the situation in the region in 1993 the Head of Central Asian States established the International Fund for Saving the Aral Sea (IFAS).
-
-Within the framework of IFAS, the countries of the region together with the international organizations make efforts to solve existing problems and improve the socio-economic and ecological situation in the Aral Sea basin.
+[Dossier: Aral Sea Crisis & IFAS | Sec 1: Pre-Crisis Baseline]
+In the recent past, the Aral Sea was a unique saline lake with a volume of 1,083 km3 and a surface area of 68,000 km2, supporting high biological productivity and a distinct aquatic ecosystem before large-scale river diversions began.
+---
+[Dossier: Aral Sea Crisis & IFAS | Sec 2: 20th-Century Shrinkage]
+During the second half of the 20th century, massive land-reclamation programs in the Aral Sea basin doubled irrigated acreage and water withdrawals. By 2000, the sea's water level had fallen by more than 20 meters, its volume shrank 6.4-fold, and its surface area dwindled more than threefold.
+---
+[Dossier: Aral Sea Crisis & IFAS | Sec 3: Socio-Economic & Health Impact]
+The Aral Sea ecological disaster degraded living conditions for over 50 million residents across Central Asia, driving falling incomes, cultural loss, rising out-migration, lower life expectancy, higher infant mortality, and increased bacterial and viral diseases.
+---
+[Dossier: Aral Sea Crisis & IFAS | Sec 4A: Creation & Mission of IFAS]
+In 1993, the Heads of Central Asian States established the International Fund for Saving the Aral Sea (IFAS) to address the sea's desiccation, prevent wider socio-economic and ecological collapse across the basin, and coordinate joint action with international partners.
+---
+[Dossier: Aral Sea Crisis & IFAS | Sec 4B: 2026 IFAS & Basin Updates]
+Within IFAS—following the April 2026 Astana Summit—member states pursue Aral Sea Basin Programs, North Aral Sea restoration via the Kokaral Dam (targeting 27 to 34 km3 volume), saxaul afforestation on the dry Aralkum seabed, and Uzbekistan's $3.3 billion package of 133 projects for its 2027–2029 IFAS chairmanship.
