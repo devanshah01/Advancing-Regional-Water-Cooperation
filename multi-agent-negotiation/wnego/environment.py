@@ -64,6 +64,15 @@ class Basin:
     def validate(self, proposal: dict) -> list[str]:
         p = self.normalize(proposal)
         errors = []
+        # normalize() silently drops parties that are not delegations, so a text that
+        # allocates to a wrong country would pass with that water vanishing. Flag it.
+        raw = proposal or {}
+        named = list(raw.get("allocations") or {})
+        named += [t.get(k) for t in raw.get("transfers") or [] if isinstance(t, dict) for k in ("from", "to")]
+        unknown = sorted({str(c) for c in named if c not in self.countries})
+        if unknown:
+            errors.append(f"{', '.join(unknown)} is not a delegation; allocate and transfer only among "
+                          f"{', '.join(self.countries)}")
         shift = p["tajik_storage_shift"]
         if not 0 <= shift <= self.cfg["max_storage_shift"]:
             errors.append(f"tajik_storage_shift must be between 0 and {self.cfg['max_storage_shift']}")

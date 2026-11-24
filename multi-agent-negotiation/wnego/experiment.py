@@ -56,7 +56,8 @@ def load_configs(root: Path = ROOT) -> dict:
 def run_one(model_spec: dict, cond: Condition, seed: int, temperature: float = 0.7,
             basin_path=ROOT / "config/basin.yaml", retriever: BaseRetriever | None = None,
             nbs_cache: dict | None = None, zopa_cache: dict | None = None, configs: dict | None = None,
-            approver=None, verifier_temperature: float | None = None):
+            approver=None, verifier_temperature: float | None = 0.0, verifier_spec: dict | None = None,
+            on_event=None):
     nbs_cache = _NBS_CACHE if nbs_cache is None else nbs_cache
     zopa_cache = _ZOPA_CACHE if zopa_cache is None else zopa_cache
     cfg = configs or load_configs()
@@ -67,10 +68,12 @@ def run_one(model_spec: dict, cond: Condition, seed: int, temperature: float = 0
     llm = make_llm(model_spec, temperature)
     # Verifier runs colder by default (0.0): the pilot found it judged the same 7 claims
     # twice and agreed with itself only 3 times at the shared temperature=0.7.
-    verifier_llm = (make_llm(model_spec, verifier_temperature) if verifier_temperature is not None
-                     and verifier_temperature != temperature else None)
+    # verifier_spec runs it on a different (typically larger) model than the agents.
+    v_temp = temperature if verifier_temperature is None else verifier_temperature
+    verifier_llm = (make_llm(verifier_spec or model_spec, v_temp)
+                    if verifier_spec or v_temp != temperature else None)
     result = Negotiation(llm, basin, cond, cfg["personas"], retriever, cfg["goals"], cfg["events"],
-                         seed=seed, approver=approver, verifier_llm=verifier_llm).run()
+                         seed=seed, approver=approver, verifier_llm=verifier_llm, on_event=on_event).run()
     key = (str(basin_path), cond.scenario)
     if key not in nbs_cache:
         nbs_cache[key] = nash_bargaining_solution(basin)
@@ -89,24 +92,27 @@ def run_experiment(config_path: str | Path, out_dir: str | Path | None = None) -
     retriever = make_retriever(configs["rag"], ROOT)
     nbs_cache: dict = {}
     zopa_cache: dict = {}
-    verifier_temperature = cfg.get("verifier_temperature")
+    verifier_temperature = cfg.get("verifier_temperature", 0.0)
+    verifier_spec = cfg.get("verifier_model")
     f = cfg["factors"]
     rows = []
-    grid = list(itertools.product(cfg["models"], f["persona"], f["payoff"], f["grounding"], f.get("legal", ["on"]),
-                                  f.get("events", ["none"]), cfg["scenarios"], range(cfg["seeds"])))
-    for i, (model, persona, payoff, grounding, legal, events, scenario, seed) in enumerate(grid, 1):
-        legal = {True: "on", False: "off"}.get(legal, legal)   # YAML reads bare on/off as booleans
+    grid = list(itertools.product(cfg["models"], f["persona"], f["payoff"], f["grounding"], f.get("legal", ["advisory"]),
+                                  f.get("events", ["none"]), f.get("decision_rule", ["none"]),
+                                  f.get("reasoning", ["structured"]), cfg["scenarios"], range(cfg["seeds"])))
+    for i, (model, persona, payoff, grounding, legal, events, rule, reasoning, scenario, seed) in enumerate(grid, 1):
         cond = Condition(persona=persona, payoff=payoff, grounding=grounding, legal=legal, events=events,
-                         scenario=scenario, max_rounds=cfg.get("max_rounds", 6))
+                         decision_rule=rule, reasoning=reasoning, scenario=scenario, max_rounds=cfg.get("max_rounds", 6))
+        legal = cond.legal   # normalised: YAML on/off booleans and "on" map to off/advisory
         try:
             res = run_one(model, cond, seed, cfg.get("temperature", 0.7), retriever=retriever if grounding == "rag" else None,
                           nbs_cache=nbs_cache, zopa_cache=zopa_cache, configs=configs,
-                          verifier_temperature=verifier_temperature)
+                          verifier_temperature=verifier_temperature, verifier_spec=verifier_spec)
         except Exception as e:  # keep the sweep going, record the failure
             rows.append({"model": model.get("name"), **cond.__dict__, "seed": seed, "error": repr(e)})
             print(f"[{i}/{len(grid)}] FAILED {cond.key()} seed={seed}: {e}")
             continue
-        tid = f"{res['model']}__{persona}__{payoff}__{grounding}__legal-{legal}__{events}__{scenario}__s{seed}"
+        tid = (f"{res['model']}__{persona}__{payoff}__{grounding}__legal-{legal}__{events}"
+               f"__rule-{rule}__{reasoning}__{scenario}__s{seed}")
         save_transcript(res, out / "transcripts" / f"{tid}.json")
         rows.append({"model": res["model"], **cond.__dict__, "seed": seed, "transcript": tid, **res["metrics"]})
         print(f"[{i}/{len(grid)}] {tid}: agreement={res['agreement']} rounds={res['rounds']}")

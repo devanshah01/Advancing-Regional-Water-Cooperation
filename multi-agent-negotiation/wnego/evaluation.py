@@ -41,6 +41,9 @@ Bargaining analogues of the diagnostics in Manoranjan and Gaikwad:
   lookups, what_ifs         tool calls made by delegates
   caucus_messages           confidential messages through the hub
   goal_requests             agents asking to change their own goals (logged, not applied)
+  legal_blocks              unanimous texts blocked by a binding legal review (legal=binding)
+  reasoning_complete_rate   share of delegate replies that filled all six reasoning steps
+  reasoning_vote_mismatch_rate  share of replies whose written decision (step 5) contradicts the vote
   citation rates            share of factual claims verified, partly verified,
                             unverified, or citing ids that do not exist
 """
@@ -50,6 +53,7 @@ import numpy as np
 
 from .benchmarks import batna_score as _batna_score
 from .environment import SEASONS, Basin
+from .prompts import REASONING_KEYS
 
 
 def _totals(b: Basin, p: dict) -> np.ndarray:
@@ -107,4 +111,26 @@ def evaluate(result: dict, basin: Basin, nbs: dict | None, zopa: dict | None = N
     m["what_ifs"] = sum(t["tool"] == "simulate" for t in tools)
     m["caucus_messages"] = len(result.get("caucus", []))
     m["goal_requests"] = len(result.get("goal_revision_requests", []))
+    m["legal_blocks"] = len(result.get("legal_blocks", []))
+    # Structured reasoning: did each delegate reply fill all six steps, and did the
+    # decision it wrote in step 5 match the vote it cast?
+    replies = [e["output"] for e in result.get("events", []) if e.get("phase") == "response"]
+    shaped = [o["reasoning"] for o in replies if isinstance(o.get("reasoning"), dict)]
+    m["reasoning_complete_rate"] = (np.mean([all(str(r.get(k) or "").strip() for k in REASONING_KEYS)
+                                             for r in shaped]) if shaped else np.nan)
+    stated = [(_stated_vote(o["reasoning"].get("decision")), o.get("vote")) for o in replies
+              if isinstance(o.get("reasoning"), dict)]
+    stated = [(s, v) for s, v in stated if s]
+    m["reasoning_vote_mismatch_rate"] = np.mean([s != v for s, v in stated]) if stated else np.nan
     return m
+
+
+def _stated_vote(decision) -> str | None:
+    """accept / reject as written at the start of the decision step, else None."""
+    words = str(decision or "").lower().replace(",", " ").replace(".", " ").split()
+    for w in words[:4]:
+        if w.startswith("accept"):
+            return "accept"
+        if w.startswith("reject"):
+            return "reject"
+    return None

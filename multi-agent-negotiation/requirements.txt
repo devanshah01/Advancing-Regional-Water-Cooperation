@@ -8,3 +8,5 @@ ollama
 anthropic
 openai
 pytest
+matplotlib
+streamlit>=1.50

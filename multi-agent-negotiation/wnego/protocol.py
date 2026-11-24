@@ -48,8 +48,10 @@ def console_approver(text_desc: str, record: list[str]) -> tuple[bool, str]:
 class Negotiation:
     def __init__(self, llm: LLM, basin: Basin, cond: Condition, personas: dict, retriever: BaseRetriever | None,
                  goals: dict, events: dict | None = None, seed: int = 0, parallel: bool = True,
-                 approver: Callable | None = None, verifier_llm: LLM | None = None):
+                 approver: Callable | None = None, verifier_llm: LLM | None = None,
+                 on_event: Callable[[dict], None] | None = None):
         self.llm, self.basin, self.cond, self.seed, self.parallel = llm, basin, cond, seed, parallel
+        self.on_event = on_event      # called with each logged event as it happens (live views, e.g. the demo)
         rng = np.random.default_rng(seed)
         self.order = [str(c) for c in rng.permutation(basin.countries)]       # logged for order effects
         child = rng.spawn(len(self.order))
@@ -58,11 +60,11 @@ class Negotiation:
         self.delegates = {c: Delegate(c, llm, basin, cond, personas, retriever, self.goals, self.tools, child[i])
                           for i, c in enumerate(self.order)}
         self.mediator = Mediator(llm, basin, cond, retriever)
-        self.legal = LegalAdvisor(llm, basin, cond, retriever) if cond.legal == "on" else None
+        self.legal = LegalAdvisor(llm, basin, cond, retriever) if cond.legal != "off" else None
         # Verifier can run on a separate (typically colder) LLM instance: the pilot found it
         # judged the same 7 claims twice and agreed with itself only 3 times, and the README's
         # own next step was to "run the verifier at temperature 0 or on a stronger model."
-        self.verifier = Verifier(verifier_llm or llm, retriever)
+        self.verifier = Verifier(verifier_llm or llm, retriever, quote_first=cond.reasoning != "free")
         self.approver = approver or (console_approver if cond.hitl == "final" else None)
         self.public: list[str] = []
         self.events: list[dict] = []
@@ -71,6 +73,8 @@ class Negotiation:
     def _log(self, **e):
         e["t"] = round(time.time(), 2)
         self.events.append(e)
+        if self.on_event:
+            self.on_event(e)
 
     def _map(self, fn, items):
         if self.parallel:
@@ -78,12 +82,19 @@ class Negotiation:
                 return dict(zip(items, ex.map(fn, items)))
         return {i: fn(i) for i in items}
 
+    @staticmethod
+    def _passages(ps) -> list[dict]:
+        """What an agent was shown from the document database, for the event log."""
+        return [{"id": p.id, "title": p.title, "page": p.meta.get("page"), "text": p.text[:400]} for p in ps or []]
+
     def _after_moves(self, round_no: int, outs: dict, with_vote: bool) -> dict:
-        """Verify claims, publish statements, route caucus notes, run tool requests."""
+        """Verify claims, log and publish each move, route caucus notes, run tool requests.
+        Each move is logged after its claims are checked, then any database lookups it asked for."""
         caucus_in = {}
         for c in self.order:
             o = outs[c]
             o["claims_checked"] = self.verifier.check(o.get("claims") or [])
+            self._log(round=round_no, phase="response" if with_vote else "opening", agent=c, output=o)
             vote = f" Vote: {o['vote']}." if with_vote else ""
             self.public.append(f"[Round {round_no}] {c}:{vote} {o.get('statement', '')}{_fmt_claims(o['claims_checked'])}")
             msg = (o.get("caucus") or "").strip()
@@ -91,21 +102,35 @@ class Negotiation:
                 caucus_in[c] = msg
                 self.delegates[c].caucus_thread.append(f"[Round {round_no}] you to mediator: {msg}")
                 self.caucus_log.append({"round": round_no, "from": c, "to": "Mediator", "text": msg})
+            before = len(self.tools.log)
             self.delegates[c].run_tools(o, round_no)
+            for t in self.tools.log[before:]:
+                if t["tool"] == "lookup":
+                    ret = self.tools.retriever
+                    found = [p for p in (ret.get(i) for i in t["results"]) if p is not None] if ret else []
+                    self._log(round=round_no, phase="lookup", agent=c, queries=t["queries"],
+                              passages=self._passages(found))
+                elif t["tool"] == "simulate":
+                    self._log(round=round_no, phase="what_if", agent=c, proposal=t["proposal"], feasible=t["feasible"])
         return caucus_in
 
     def run(self) -> dict:
         b, cond = self.basin, self.cond
         d = b.no_deal_utilities()
 
+        for c in self.order:              # what each agent starts with from the document database
+            self._log(round=0, phase="briefing", agent=c, passages=self._passages(self.delegates[c].briefing))
+        self._log(round=0, phase="briefing", agent="Mediator", passages=self._passages(self.mediator.briefing))
+        if self.legal:
+            self._log(round=0, phase="briefing", agent="LegalAdvisor", passages=self._passages(self.legal.briefing))
+
         snap = list(self.public)
         openings = self._map(lambda c: self.delegates[c].opening(snap), self.order)
         caucus_in = self._after_moves(0, openings, with_vote=False)
         asks = {c: o.get("ask", {}) for c, o in openings.items()}
-        for c, o in openings.items():
-            self._log(round=0, phase="opening", agent=c, output=o)
 
         text, responses, review, agreement, votes, goal_trace, hitl = None, None, None, False, [], [], []
+        legal_blocks = []
         for r in range(1, cond.max_rounds + 1):
             for ev in self.goals.due(r):
                 changes = self.goals.apply(ev, r)
@@ -117,7 +142,7 @@ class Negotiation:
             for attempt in range(3):
                 m = self.mediator.draft(r, self.public, caucus_in, asks if r == 1 else None, text, responses, review, errors)
                 cand = b.normalize(m.get("proposal") or {})
-                errors = b.validate(cand)
+                errors = b.validate(m.get("proposal") or {})   # raw, so unknown parties are caught
                 self._log(round=r, phase="mediator_draft", agent="Mediator", attempt=attempt, output=m, errors=errors)
                 if not errors:
                     break
@@ -146,9 +171,17 @@ class Negotiation:
             for c, o in responses.items():
                 votes.append({"round": r, "country": c, "vote": o["vote"], "utility": u[c], "no_deal": d[c],
                               "goal_version": self.goals.version[c]})
-                self._log(round=r, phase="response", agent=c, output=o)
 
             if all(o["vote"] == "accept" for o in responses.values()):
+                if cond.legal == "binding" and review:
+                    bad = [str(a.get("principle")) for a in review.get("assessments", [])
+                           if isinstance(a, dict) and a.get("finding") == "inconsistent"]
+                    if bad:
+                        legal_blocks.append({"round": r, "principles": bad})
+                        self.public.append(f"[Round {r}] The legal advisor's binding review blocks this text: "
+                                           f"inconsistent with {', '.join(bad)}. The mediator must revise it.")
+                        self._log(round=r, phase="legal_block", agent="LegalAdvisor", principles=bad)
+                        continue
                 if self.approver:
                     ok, note = self.approver(b.describe(text), self.public)
                     hitl.append({"round": r, "approved": ok, "note": note})
@@ -167,7 +200,7 @@ class Negotiation:
             "condition": cond.__dict__, "seed": self.seed, "speaking_order": self.order,
             "agreement": agreement, "rounds": r, "final_text": final, "final_utilities": final_u,
             "no_deal_utilities": d, "last_text": text, "votes": votes, "claims": claims,
-            "legal_reviews": reviews, "caucus": self.caucus_log, "tool_calls": self.tools.log,
+            "legal_reviews": reviews, "legal_blocks": legal_blocks, "caucus": self.caucus_log, "tool_calls": self.tools.log,
             "goal_history": self.goals.history, "goal_versions_by_round": goal_trace,
             "goal_revision_requests": self.goals.requests, "human_approvals": hitl,
             "public_record": self.public, "events": self.events, "llm_calls": self.llm.calls,
