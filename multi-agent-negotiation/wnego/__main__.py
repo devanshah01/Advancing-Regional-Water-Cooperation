@@ -46,7 +46,15 @@ def main():
     r.add_argument("--persona", default="worksheet", help="none, rich, rich_v2, rich_v3, worksheet")
     r.add_argument("--payoff", default="hidden", choices=["hidden", "own", "full"])
     r.add_argument("--grounding", default="rag", choices=["rag", "none"])
-    r.add_argument("--legal", default="on", choices=["on", "off"])
+    r.add_argument("--legal", default="advisory", choices=["off", "advisory", "binding", "on"],
+                   help="legal advisor: off, advisory (findings published) or binding (an inconsistent finding "
+                        "blocks adoption); on = advisory")
+    r.add_argument("--decision-rule", default="none", choices=["none", "batna"],
+                   help="batna: tell delegates to reject any text worth less than no deal")
+    r.add_argument("--reasoning", default="structured", choices=["structured", "free"],
+                   help="structured: every agent fills the same six reasoning steps; free: one free-text field")
+    r.add_argument("--verifier-temperature", type=float, default=0.0)
+    r.add_argument("--verifier-model", default=None, help="run the verifier on a different model, e.g. qwen2.5:14b")
     r.add_argument("--events", default="none")
     r.add_argument("--hitl", default="off", choices=["off", "final"])
     r.add_argument("--scenario", default="normal")
@@ -119,8 +127,11 @@ def main():
         if a.host:
             spec["host"] = a.host
         cond = Condition(persona=a.persona, payoff=a.payoff, grounding=a.grounding, legal=a.legal, events=a.events,
-                         hitl=a.hitl, scenario=a.scenario, max_rounds=a.rounds)
-        res = run_one(spec, cond, a.seed, configs=_configs_with_rag(a))
+                         hitl=a.hitl, scenario=a.scenario, max_rounds=a.rounds, decision_rule=a.decision_rule,
+                         reasoning=a.reasoning)
+        vspec = {**spec, "name": a.verifier_model, "model": a.verifier_model} if a.verifier_model else None
+        res = run_one(spec, cond, a.seed, configs=_configs_with_rag(a), verifier_temperature=a.verifier_temperature,
+                      verifier_spec=vspec)
         print("\n".join(res["public_record"]))
         print("\nAGREEMENT" if res["agreement"] else "\nNO DEAL", "after", res["rounds"], "rounds")
         print(json.dumps(res["metrics"], indent=1, default=float))
