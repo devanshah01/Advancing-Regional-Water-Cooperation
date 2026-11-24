@@ -1,0 +1,21 @@
+# Theme for the demo. Keep this file identical to multi-agent-negotiation/.streamlit/config.toml:
+# Streamlit reads the copy in the folder it is started from (root on Streamlit Cloud, either locally).
+[server]
+runOnSave = true          # rerun the demo when demo.py or any wnego/ module it imports is saved
+
+# Theme from the Figma "chat" file (TGWpXoAcLnEToKn44aZh6q): warm off-white page,
+# white cards, deep green actions. Values were matched by eye from a small preview;
+# replace them with the exact tokens from Figma Dev Mode when available.
+[theme]
+base = "light"
+primaryColor = "#1E4D40"
+backgroundColor = "#F6F3EC"
+secondaryBackgroundColor = "#ECE7DC"
+textColor = "#1F2A26"
+borderColor = "#E2DCCF"
+linkColor = "#1E4D40"
+baseRadius = "0.6rem"
+buttonRadius = "0.5rem"
+font = "sans-serif"
+headingFont = "serif"
+showWidgetBorder = true

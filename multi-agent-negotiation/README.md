@@ -1,6 +1,18 @@
 **Multi Agent Negotiation**
 
-A RAG grounded, hub and spoke multiagent workflow in which LLM delegates for Afghanistan, Tajikistan, Uzbekistan and Turkmenistan negotiate Amu Darya water allocation through a neutral mediator. It doubles as an experimental harness: persona framing, payoff visibility and document grounding are switchable factors, so every run measures how those design choices change the outcome.
+**Live demo:** from the repository root run `pip install -r multi-agent-negotiation/requirements.txt` once, then `streamlit run multi-agent-negotiation/demo.py`. Pick a backend (Claude with an `ANTHROPIC_API_KEY`, Ollama with your local models, or mock, which runs instantly) and the experiment settings, then watch the negotiation unfold round by round, or replay a recorded run from `demo_runs/`. The demo follows the codebase: its controls are built from `Condition` and the config files, and it reloads whenever anything in `wnego/` or `config/` changes.
+
+**Public link (Streamlit Community Cloud):** at share.streamlit.io choose *Create app*, pick this repository and branch, set the main file to `multi-agent-negotiation/demo.py` and Python 3.12, and under *Advanced settings → Secrets* add:
+
+```toml
+ANTHROPIC_API_KEY = "sk-ant-..."   # optional: enables live Claude runs (billed to this key)
+DEMO_PASSWORD = "choose-one"       # optional: only people with the password can start live runs
+DEMO_MAX_RUNS = "5"                # optional: live runs per visitor session
+```
+
+Without a key the public app still shows the recorded runs and mock runs. The team database (`chroma_db/`) is not deployed, so online agents search the built-in summaries in `corpus/`.
+
+A RAG grounded, hub and spoke multiagent workflow in which LLM delegates for Kyrgyzstan, Tajikistan, Uzbekistan and Turkmenistan negotiate Amu Darya water allocation through a neutral mediator. It doubles as an experimental harness: persona framing, payoff visibility and document grounding are switchable factors, so every run measures how those design choices change the outcome.
 Written for: your teammates, as a plain-text summary to paste into a chat or doc.
 
 **Synthetic persona results (llama3.2, RAG database, 10 personas, one run each)**

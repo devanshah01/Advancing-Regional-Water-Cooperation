@@ -16,3 +16,6 @@ db_*/
 db_*/
 
 db_*/
+
+# Streamlit secrets (API keys, demo password) never go in git
+.streamlit/secrets.toml

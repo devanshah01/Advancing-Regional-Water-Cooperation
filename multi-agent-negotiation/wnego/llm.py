@@ -71,25 +71,41 @@ class LLM:
         raise RuntimeError(f"{self.name} failed to return JSON: {last}")
 
 
+# Models that accept the server-side refusal fallback (a declined request is re-run on a
+# fallback model inside the same call).
+FALLBACK_MODELS = ("claude-fable-5-2", "claude-fable-5-1", "claude-opus-5-5", "claude-opus-5", "claude-sonnet-5-5")
+
+
 class AnthropicLLM(LLM):
+    """Claude through the Anthropic SDK (credentials from ANTHROPIC_API_KEY or an `ant auth login` profile).
+
+    Current Claude models think adaptively before answering and reject sampling
+    parameters, so `temperature` is not sent; reasoning depth is set with `effort`
+    (low | medium | high | xhigh | max; None keeps the model's default). Thinking
+    counts toward max_tokens, hence the larger default. The SDK retries rate limits,
+    overloads and connection errors itself.
+    """
     name = "anthropic"
 
-    def __init__(self, **kw):
-        super().__init__(**kw)
+    def __init__(self, model: str = "", effort: str | None = None, max_tokens: int = 16000, **kw):
+        super().__init__(model=model or "claude-opus-5-5", max_tokens=max_tokens, **kw)
         import anthropic
-        self.client = anthropic.Anthropic()
+        self.client = anthropic.Anthropic(max_retries=4)
+        self.effort = effort
+        self.refusals = 0
 
     def _complete(self, system, user):
-        for wait in (2, 5, 15, 0):
-            try:
-                r = self.client.messages.create(model=self.model, system=system, max_tokens=self.max_tokens,
-                                                temperature=self.temperature,
-                                                messages=[{"role": "user", "content": user}])
-                return "".join(b.text for b in r.content if getattr(b, "type", "") == "text")
-            except Exception:
-                if not wait:
-                    raise
-                time.sleep(wait)
+        kw = dict(model=self.model, system=system, max_tokens=self.max_tokens,
+                  messages=[{"role": "user", "content": user}])
+        if self.effort:
+            kw["output_config"] = {"effort": self.effort}
+        if self.model in FALLBACK_MODELS:
+            r = self.client.beta.messages.create(betas=["server-side-fallback-2026-07-01"], fallbacks="default", **kw)
+        else:
+            r = self.client.messages.create(**kw)
+        if r.stop_reason == "refusal":      # the whole fallback chain declined; the caller's JSON retry handles it
+            self.refusals += 1
+        return "".join(b.text for b in r.content if getattr(b, "type", "") == "text")
 
 
 class OpenAICompatLLM(LLM):

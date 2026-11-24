@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass
+from typing import ClassVar
 
 from . import prompts as P
 from .environment import SEASONS, Basin
@@ -37,16 +38,38 @@ class Condition:
     payoff: str = "hidden"       # hidden | own | full
     grounding: str = "rag"       # rag | none
     scenario: str = "normal"
-    legal: str = "on"            # on | off  (legal advisor present)
+    legal: str = "advisory"      # off | advisory | binding  ("on" is accepted as advisory)
     events: str = "none"         # key in events.yaml
     hitl: str = "off"            # off | final  (human approves a unanimous text)
     max_rounds: int = 6
     briefing_size: int = 8
     mediator_sees_payoffs: bool = False
+    decision_rule: str = "none"  # none | batna  (vote tied to the walk-away comparison)
+    reasoning: str = "structured"  # structured (six-step procedure) | free (one free-text field)
+
+    # Allowed values for the fixed-choice factors, first = default. Validation and the
+    # demo's controls both read this, so a new level added here shows up everywhere.
+    # persona, events and scenario are keys in the config files and are not listed.
+    CHOICES: ClassVar[dict] = {
+        "payoff": ("hidden", "own", "full"),
+        "grounding": ("rag", "none"),
+        "legal": ("advisory", "off", "binding"),
+        "hitl": ("off", "final"),
+        "decision_rule": ("none", "batna"),
+        "reasoning": ("structured", "free"),
+    }
+
+    def __post_init__(self):
+        # YAML reads bare on/off as booleans; "on" predates the advisory/binding split
+        self.legal = {True: "advisory", False: "off", "on": "advisory"}.get(self.legal, self.legal)
+        for name, allowed in self.CHOICES.items():
+            if getattr(self, name) not in allowed:
+                raise ValueError(f"{name} must be one of {', '.join(allowed)}, not {getattr(self, name)!r}")
 
     def key(self) -> str:
         return (f"persona={self.persona}|payoff={self.payoff}|grounding={self.grounding}|legal={self.legal}"
-                f"|events={self.events}|scenario={self.scenario}")
+                f"|events={self.events}|scenario={self.scenario}|decision_rule={self.decision_rule}"
+                f"|reasoning={self.reasoning}")
 
 
 def persona_text(personas: dict, variant: str, country: str) -> str:
@@ -59,7 +82,14 @@ def payoff_lines(basin: Basin, proposal: dict, country: str, mode: str) -> str:
         return ""
     u, d = basin.utilities(proposal), basin.no_deal_utilities()
     who = [country] if mode == "own" else basin.countries
-    return "Value (USD million equivalent):\n" + "\n".join(f"  {c}: this text {u[c]:.0f}, no deal {d[c]:.0f}" for c in who)
+
+    def line(c):
+        gap = u[c] - d[c]
+        verdict = (f"{gap:.0f} ABOVE walk-away: better than no deal" if gap >= 0
+                   else f"{-gap:.0f} BELOW walk-away: worse than no deal")
+        return f"  {c}: this text {u[c]:.0f}, walk-away (no deal) {d[c]:.0f}, so {verdict}"
+
+    return "Value (USD million equivalent):\n" + "\n".join(line(c) for c in who)
 
 
 # ---------------------------------------------------------------------------
@@ -111,14 +141,18 @@ class Delegate:
         payoff_rule = {"hidden": P.PAYOFF_HIDDEN, "own": P.PAYOFF_OWN, "full": P.PAYOFF_FULL}[cond.payoff]
         whatif_payoff = {"hidden": "", "own": ", and its value to your country",
                          "full": ", and its value to every delegation"}[cond.payoff]
-        self.system = "\n\n".join([
+        self.system = "\n\n".join(x for x in [
             persona_text(personas, cond.persona, country),
             P.DELEGATE_RULES.format(max_rounds=cond.max_rounds, scenario=cond.scenario,
                                     max_shift=basin.cfg["max_storage_shift"], whatif_payoff=whatif_payoff,
-                                    countries=", ".join(basin.countries)),
+                                    countries=", ".join(basin.countries),
+                                    unilateral=" and ".join(c for c, par in basin.cfg["countries"].items()
+                                                            if "unilateral_take" in par)),
             P.GROUNDING_RAG if cond.grounding == "rag" else P.GROUNDING_NONE,
             payoff_rule,
-        ])
+            P.DECISION_RULE_BATNA if cond.decision_rule == "batna" else "",
+            P.LEGAL_BINDING_NOTE if cond.legal == "binding" else "",
+        ] if x)
         self.caucus_thread: list[str] = []      # private channel with the mediator
         self.found: list[Passage] = []          # passages from lookups
         self.tool_results: list[str] = []       # simulator reports waiting to be read
@@ -144,7 +178,9 @@ class Delegate:
         return "\n\n".join(parts)
 
     def opening(self, public_record) -> dict:
-        user = self._context(0, public_record) + "\n\n" + P.OPENING_SCHEMA
+        user = "\n\n".join(x for x in [self._context(0, public_record),
+                                       P.how_to_decide("opening", self.cond.reasoning),
+                                       P.with_reasoning(P.OPENING_SCHEMA, self.cond.reasoning)] if x)
         out = self.llm.complete_json(self.system, user, meta={"mock": self._mock_opening})
         self.memory.append(f"Opening ask: {out.get('ask', {})}")
         return out
@@ -154,7 +190,8 @@ class Delegate:
             self._context(round_no, public_record),
             f"ROUND {round_no} of {self.cond.max_rounds}. CURRENT SINGLE NEGOTIATING TEXT\n{self.basin.describe(text)}",
             payoff_lines(self.basin, text, self.country, self.cond.payoff),
-            P.DELEGATE_SCHEMA] if x)
+            P.how_to_decide("delegate", self.cond.reasoning),
+            P.with_reasoning(P.DELEGATE_SCHEMA, self.cond.reasoning)] if x)
         out = self.llm.complete_json(self.system, user, meta={"mock": lambda: self._mock_respond(text, round_no)})
         out["vote"] = "accept" if str(out.get("vote", "")).lower().startswith("acc") else "reject"
         self.memory.append(f"Round {round_no}: voted {out['vote']}; amendments {out.get('amendments', {})}")
@@ -221,9 +258,13 @@ class Mediator:
         f, env = basin.base_flow, basin.cfg["environmental_flow"]
         evidence = ("EVIDENCE: cite passage ids for factual claims.\nDOCUMENT PASSAGES\n"
                     + "\n".join(p.cite_block() for p in self.briefing)) if self.briefing else ""
-        self.system = P.MEDIATOR_SYSTEM.format(scenario=cond.scenario, g=f["growing"], w=f["winter"],
+        self.schema = P.with_reasoning(P.MEDIATOR_SCHEMA, cond.reasoning).replace("<ALLOCATIONS>", ", ".join(
+            f'"{c}": {{"growing": number, "winter": number}}' for c in basin.countries))
+        self.system = P.MEDIATOR_SYSTEM.format(countries=", ".join(basin.countries), scenario=cond.scenario,g=f["growing"], w=f["winter"],
                                                max_shift=basin.cfg["max_storage_shift"], eg=env["growing"],
                                                ew=env["winter"], evidence=evidence)
+        if cond.legal == "binding":
+            self.system += "\n\n" + P.LEGAL_BINDING_NOTE
 
     def draft(self, round_no, public_record, caucus_in: dict, asks=None, last_text=None, responses=None,
               legal=None, errors=None) -> dict:
@@ -243,7 +284,9 @@ class Mediator:
             parts.append("OPENING ASKS\n" + "\n".join(f"{c}: {a}" for c, a in asks.items()))
         if errors:
             parts.append("YOUR LAST DRAFT FAILED THE HYDROLOGY CHECK. FIX THESE PROBLEMS:\n" + "\n".join(errors))
-        parts.append(f"Table the single negotiating text for round {round_no}.\n" + P.MEDIATOR_SCHEMA)
+        steps = P.how_to_decide("mediator", self.cond.reasoning)
+        parts.append(f"Table the single negotiating text for round {round_no}.\n"
+                     + (steps + "\n\n" if steps else "") + self.schema)
         return self.llm.complete_json(self.system, "\n\n".join(parts),
                                       meta={"mock": lambda: self._mock_draft(asks, last_text, responses)})
 
@@ -302,7 +345,7 @@ def legal_text(review: dict) -> str:
 
 class LegalAdvisor:
     def __init__(self, llm: LLM, basin: Basin, cond: Condition, retriever: BaseRetriever | None):
-        self.llm, self.basin = llm, basin
+        self.llm, self.basin, self.cond = llm, basin, cond
         self.briefing = retriever.multi_search(
             ["equitable and reasonable utilization factors", "obligation not to cause significant harm",
              "notification planned measures", "protection of ecosystems", "Protocol 566 Almaty Agreement ICWC parties"],
@@ -313,7 +356,8 @@ class LegalAdvisor:
             ("LEGAL PASSAGES\n" + "\n".join(p.cite_block() for p in self.briefing)) if self.briefing
             else "No legal documents are available; say where your findings rest on general principles only.",
             f"DRAFT TEXT, ROUND {round_no}\n{self.basin.describe(text)}",
-            P.LEGAL_SCHEMA] if x)
+            P.how_to_decide("legal", self.cond.reasoning),
+            P.with_reasoning(P.LEGAL_SCHEMA, self.cond.reasoning)] if x)
         return self.llm.complete_json(P.LEGAL_SYSTEM, user, meta={"mock": lambda: self._mock(text)})
 
     def _mock(self, text):
@@ -327,12 +371,23 @@ class LegalAdvisor:
 
 
 # ---------------------------------------------------------------------------
+_QUOTES = str.maketrans({"\u201c": '"', "\u201d": '"', "\u2018": "'", "\u2019": "'"})
+
+
+def _squash(text: str) -> str:
+    """Lowercase, unify quote marks and collapse whitespace, to check a quoted span."""
+    return " ".join(text.translate(_QUOTES).lower().split()).strip(" .\"'")
+
+
 class Verifier:
     """Checks every cited claim against the cited passage before it enters the
     shared record, so one agent's hallucination does not cascade to the others."""
 
-    def __init__(self, llm: LLM, retriever: BaseRetriever | None, normalize_ids: bool = True):
-        self.llm, self.retriever, self.normalize_ids = llm, retriever, normalize_ids
+    def __init__(self, llm: LLM, retriever: BaseRetriever | None, normalize_ids: bool = True,
+                 quote_first: bool = True):
+        # quote_first: the judge copies the passage words that bear on each claim
+        # before giving a verdict, and a missing or invented quote forces "unsupported".
+        self.llm, self.retriever, self.normalize_ids, self.quote_first = llm, retriever, normalize_ids, quote_first
 
     def resolve(self, cite: str) -> tuple[str, object]:
         """Map a cited id to a passage. Small models copy the brackets passages are
@@ -381,11 +436,20 @@ class Verifier:
             return out
         listing = "\n\n".join(f"Claim {k}: {out[i].get('text', '')}\nPassage [{out[i]['cite']}]: {passages[i].text}"
                               for k, i in enumerate(judge))
-        res = self.llm.complete_json(P.VERIFIER_SYSTEM, listing + "\n\n" + P.VERIFIER_SCHEMA,
+        schema = P.VERIFIER_QUOTE_FIRST if self.quote_first else P.VERIFIER_SCHEMA
+        res = self.llm.complete_json(P.VERIFIER_SYSTEM, listing + "\n\n" + schema,
                                      meta={"mock": lambda: self._mock(out, judge, passages)})
-        verdicts = {r.get("i"): r.get("verdict", "unsupported") for r in res.get("results", []) if isinstance(r, dict)}
+        rows = {r.get("i"): r for r in res.get("results", []) if isinstance(r, dict)}
         for k, i in enumerate(judge):
-            out[i]["verdict"] = verdicts.get(k, "unsupported")
+            r = rows.get(k, {})
+            verdict = r.get("verdict", "unsupported")
+            if self.quote_first:
+                ev = str(r.get("evidence") or "").strip()
+                out[i]["evidence"] = ev
+                # a quote that is not in the passage is not evidence
+                if verdict in ("supported", "partial") and (not ev or _squash(ev) not in _squash(passages[i].text)):
+                    verdict = "unsupported"
+            out[i]["verdict"] = verdict
         return out
 
     @staticmethod
@@ -394,5 +458,6 @@ class Verifier:
         for k, i in enumerate(judge):
             claim, passage = set(tokenize(out[i].get("text", ""))), set(tokenize(passages[i].text))
             overlap = len(claim & passage) / max(len(claim), 1)
-            res.append({"i": k, "verdict": "supported" if overlap > 0.7 else "partial" if overlap > 0.4 else "unsupported"})
+            res.append({"i": k, "evidence": passages[i].text[:200],
+                        "verdict": "supported" if overlap > 0.7 else "partial" if overlap > 0.4 else "unsupported"})
         return {"results": res}
